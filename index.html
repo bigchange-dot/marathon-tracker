@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>마라톤 트래커 — 11/15 풀코스</title>
+<meta name="description" content="2026-11-15 풀코스 완주를 위한 14주 훈련 트래커">
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<header class="app-header">
+  <span class="app-title">🏃 마라톤 트래커</span>
+  <span class="app-sub">11/15 풀코스</span>
+</header>
+
+<main>
+  <div id="view-today" class="view"></div>
+  <div id="view-calendar" class="view" hidden></div>
+  <div id="view-stats" class="view" hidden></div>
+  <div id="view-guide" class="view" hidden></div>
+</main>
+
+<nav class="tabbar">
+  <button class="tab on" data-view="today">오늘</button>
+  <button class="tab" data-view="calendar">캘린더</button>
+  <button class="tab" data-view="stats">통계</button>
+  <button class="tab" data-view="guide">가이드</button>
+</nav>
+
+<dialog id="record-dialog">
+  <form id="record-form" method="dialog">
+    <h2 id="record-title">러닝 기록</h2>
+    <input type="hidden" id="f-id"><input type="hidden" id="f-plan">
+    <div class="form-grid">
+      <label>날짜<input type="date" id="f-date" required></label>
+      <label>타입
+        <select id="f-type">
+          <option value="recovery">회복 조깅</option>
+          <option value="rhythm">리듬 유지주</option>
+          <option value="long">장거리 (LSD)</option>
+          <option value="easy">보조 조깅</option>
+          <option value="race">대회</option>
+        </select>
+      </label>
+      <label>거리 (km)<input type="number" id="f-dist" step="0.01" min="0" inputmode="decimal" required></label>
+      <label>시간
+        <span class="dur-row">
+          <input type="number" id="f-dh" placeholder="시" min="0" max="9" inputmode="numeric">
+          <input type="number" id="f-dm" placeholder="분" min="0" max="59" inputmode="numeric">
+          <input type="number" id="f-ds" placeholder="초" min="0" max="59" inputmode="numeric">
+        </span>
+      </label>
+      <label>평균 심박<input type="number" id="f-hr" min="0" max="250" inputmode="numeric"></label>
+      <label>최대 심박<input type="number" id="f-maxhr" min="0" max="250" inputmode="numeric"></label>
+      <label>케이던스 (spm)<input type="number" id="f-cad" min="0" max="250" inputmode="numeric"></label>
+      <label>런워크 비율<input type="text" id="f-runwalk" placeholder="예: 4분 run / 1분 walk"></label>
+    </div>
+    <div id="pace-preview" class="pace-preview"></div>
+    <label class="pain-label">정강이 통증 <output id="pain-out">0</output>/10
+      <input type="range" id="f-pain" min="0" max="10" value="0">
+    </label>
+    <label>러닝화<input type="text" id="f-shoes" placeholder="착용 러닝화"></label>
+    <label>메모<textarea id="f-notes" rows="2" placeholder="날씨, 컨디션, 특이사항"></textarea></label>
+    <div class="btn-row">
+      <button type="button" id="f-delete" class="btn btn-danger" hidden>삭제</button>
+      <span class="spacer"></span>
+      <button type="button" id="f-cancel" class="btn btn-ghost">취소</button>
+      <button type="submit" class="btn btn-primary">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" role="status"></div>
+
+<script src="./js/data.js"></script>
+<script src="./js/store.js"></script>
+<script src="./js/charts.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>
