@@ -18,7 +18,17 @@ const RACE = {
   // 하프 2:14:33(6'22"/km) 기준 예상 완주 4:48~4:55
   targetPaceSec: [410, 420],      // 6'50" ~ 7'00" /km
   targetFinish: '4:48 ~ 4:55',
-  cutoffNote: '대회 컷오프(보통 5시간) 반드시 확인 — 예상 기록 대비 여유 10~20분',
+  cutoffMin: 300,                 // 컷오프 5시간 (확정)
+  cutoffPaceSec: 427,             // 7'07"/km — 완주 한계 페이스
+  cutoffNote: '컷오프 5:00 확정 — 한계 페이스 7\'07"/km, 목표 대비 여유 5~12분. 화장실·급수 정지까지 이 여유 안에서.',
+  // 구간별 통과 목표 (목표 6'55" 기준 / 컷오프 한계 7'07" 기준)
+  splits: [
+    { point: '10km',  target: '1:09', limit: '1:11' },
+    { point: '하프',  target: '2:26', limit: '2:30' },
+    { point: '30km',  target: '3:28', limit: '3:33' },
+    { point: '40km',  target: '4:37', limit: '4:44' },
+    { point: '피니시', target: '4:52', limit: '5:00' },
+  ],
 };
 
 // 훈련 타입별 목표 페이스 (초/km)

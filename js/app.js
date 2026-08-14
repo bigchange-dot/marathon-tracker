@@ -38,7 +38,7 @@ function renderToday() {
   const hero = h('section', 'card hero-card');
   hero.appendChild(h('div', 'hero-label', RACE.name + ' · ' + fmtDate(RACE.date)));
   hero.appendChild(h('div', 'hero-num', dday > 0 ? 'D-' + dday : dday === 0 ? 'D-DAY' : '완주!'));
-  hero.appendChild(h('div', 'hero-sub', `목표 ${RACE.targetFinish} (${fmtPace(RACE.targetPaceSec[0])}~${fmtPace(RACE.targetPaceSec[1])}/km)`));
+  hero.appendChild(h('div', 'hero-sub', `목표 ${RACE.targetFinish} (${fmtPace(RACE.targetPaceSec[0])}~${fmtPace(RACE.targetPaceSec[1])}/km) · 컷오프 5:00`));
   root.appendChild(hero);
 
   // 이번 주 진행
@@ -272,9 +272,29 @@ function renderGuide() {
   [
     `목표: ${RACE.targetFinish} 완주 (${fmtPace(RACE.targetPaceSec[0])}~${fmtPace(RACE.targetPaceSec[1])}/km)`,
     RACE.cutoffNote,
+    `초반 10km는 6'55" 고정 — 6'45"보다 빠르면 오버페이스.`,
+    `30km를 3:28 이내에 통과하면 이후 7'30"대로 느려져도 완주 가능. 이 시계가 레이스의 전부.`,
+    '컷오프가 건타임(출발 총성) 기준일 수 있음 — 출발 그룹 앞쪽에 서고, 구간 관문(중간 컷오프)은 대회 요강 확인.',
     '런워크는 초반 1km부터 시작. 지쳐서 시작하는 걷기는 회복이 아니라 후퇴.',
     '보급: 젤 40~45분 간격(레이스 중 4~5개), 급수는 매 급수대에서 소량.',
   ].forEach(s => strat.appendChild(h('div', 'guide-line', '· ' + s)));
+  // 구간별 통과 목표 — 대회 중 시계 체크용
+  const sWrap = h('div', 'table-wrap');
+  const sTable = h('table', 'run-table');
+  const sTrh = h('tr');
+  ['구간', '목표 통과', '컷오프 한계'].forEach(c => sTrh.appendChild(h('th', null, c)));
+  const sThead = h('thead'); sThead.appendChild(sTrh); sTable.appendChild(sThead);
+  const sTbody = h('tbody');
+  RACE.splits.forEach(s => {
+    const tr = h('tr');
+    tr.appendChild(h('td', null, s.point));
+    tr.appendChild(h('td', 'num', s.target));
+    tr.appendChild(h('td', 'num', s.limit));
+    sTbody.appendChild(tr);
+  });
+  sTable.appendChild(sTbody); sWrap.appendChild(sTable);
+  strat.appendChild(sWrap);
+  strat.appendChild(h('div', 'muted-line', `목표는 6'55"/km, 한계는 7'07"/km 기준. 한계열보다 뒤면 걷기 구간을 줄여야 한다.`));
   root.appendChild(strat);
 
   const paceCard = h('section', 'card');
