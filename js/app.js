@@ -88,20 +88,8 @@ function renderToday() {
   nCard.appendChild(freeBtn);
   root.appendChild(nCard);
 
-  // 개인 기록
-  const pbCard = h('section', 'card');
-  pbCard.appendChild(h('div', 'card-title', '개인 기록'));
-  const pbRow = h('div', 'pb-row');
-  PERSONAL_BESTS.forEach(pb => {
-    const tile = h('div', 'pb-tile');
-    tile.append(h('div', 'pb-label', pb.label), h('div', 'pb-value', pb.value), h('div', 'pb-sub', pb.sub));
-    pbRow.appendChild(tile);
-  });
-  pbCard.appendChild(pbRow);
-  root.appendChild(pbCard);
-
-  // 최근 기록 3개
-  const recent = runs.slice(-3).reverse();
+  // 최근 기록 3개 — 앱으로 입력한 기록만 (시드 과거 기록 제외)
+  const recent = runs.filter(isAppRun).slice(-3).reverse();
   if (recent.length) {
     const rc = h('section', 'card');
     rc.appendChild(h('div', 'card-title', '최근 기록'));
@@ -132,6 +120,35 @@ function renderCalendar() {
   const runs = Store.all();
   const cw = currentWeek();
   const weeks = weeklyStats(runs);
+
+  // 전체 진척도 — 플랜 기간 내 실행 누적 vs 계획 누적
+  const today = todayStr();
+  const actualKm = runs.filter(r => r.date >= PLAN_START).reduce((s, r) => s + (r.distanceKm || 0), 0);
+  const planToDateKm = PLANS.filter(p => p.targetKm != null && p.date <= today).reduce((s, p) => s + p.targetKm, 0);
+  const planTotalKm = PLANS.reduce((s, p) => s + (p.targetKm || 0), 0);
+  const pg = h('section', 'card');
+  pg.appendChild(h('div', 'card-title', '전체 진척도'));
+  const pgBar = h('div', 'progress');
+  const pgFill = h('div', 'progress-fill');
+  pgFill.style.width = Math.min(100, planTotalKm ? actualKm / planTotalKm * 100 : 0) + '%';
+  pgBar.appendChild(pgFill);
+  if (planTotalKm > 0 && planToDateKm > 0) {
+    const mark = h('div', 'progress-marker');
+    mark.style.left = Math.min(100, planToDateKm / planTotalKm * 100) + '%';
+    pgBar.appendChild(mark);
+  }
+  pg.appendChild(pgBar);
+  const pgRow = h('div', 'stat-row');
+  [['누적 실행', actualKm.toFixed(1) + 'km'],
+   ['오늘까지 계획', Math.round(planToDateKm) + 'km'],
+   ['전체 계획', Math.round(planTotalKm) + 'km']].forEach(([label, value]) => {
+    const tile = h('div', 'stat-tile');
+    tile.append(h('div', 'stat-label', label), h('div', 'stat-value', value));
+    pgRow.appendChild(tile);
+  });
+  pg.appendChild(pgRow);
+  if (planToDateKm > 0) pg.appendChild(h('div', 'muted-line', `오늘까지 계획 대비 ${Math.round(actualKm / planToDateKm * 100)}% · 막대의 세로선 = 오늘 계획 지점`));
+  root.appendChild(pg);
 
   root.appendChild(h('p', 'view-note', '월·수·금은 휴식 + 하체·종아리 보강(카프 레이즈 등). 놓친 훈련은 건너뛰고 다음 훈련부터 계획대로.'));
 
@@ -179,7 +196,7 @@ function filterPlansType(p) {
 function renderStats() {
   const root = $('#view-stats');
   root.replaceChildren();
-  const allRuns = Store.all();
+  const allRuns = Store.all().filter(isAppRun); // 시드된 과거 기록 제외
   const runs = filterRuns(allRuns);
 
   // 필터 행 — 아래 모든 차트/표를 스코프

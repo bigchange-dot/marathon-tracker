@@ -13,7 +13,7 @@ const TOTAL_WEEKS = 14;
 
 const RACE = {
   date: '2026-11-15',
-  name: '풀코스 마라톤',
+  name: '손기정마라톤',
   distanceKm: 42.195,
   // 하프 2:14:33(6'22"/km) 기준 예상 완주 4:48~4:55
   targetPaceSec: [410, 420],      // 6'50" ~ 7'00" /km
@@ -117,11 +117,6 @@ const HISTORY = [
   { date: '2026-04-16', type: 'easy',     distanceKm: 3.31,    durationSec: null, paceSec: 445, avgHr: 155, maxHr: 162,  cadence: 167, shinPain: null, notes: '테이퍼링 주간 리듬 조깅 — 완벽 제어' },
   { date: '2026-04-26', type: 'race',     distanceKm: 21.0975, durationSec: 8073, paceSec: 383, avgHr: null, maxHr: null, cadence: null, shinPain: null, notes: '서울 하프 마라톤 완주 2:14:33 (목표 시간 내)' },
   { date: '2026-07-27', type: 'recovery', distanceKm: 4.5,     durationSec: 1800, paceSec: 400, avgHr: null, maxHr: null, cadence: null, shinPain: 2, runWalk: '3km run / 1min walk', notes: '3개월 만의 러닝 재개' },
-];
-
-const PERSONAL_BESTS = [
-  { label: '하프',  value: '2:14:33', sub: "6'22\"/km · 2026-04" },
-  { label: '10km', value: '59분대',  sub: 'Sub-1 달성' },
 ];
 
 // 통증 신호등 (정강이 통증 지수 0~10)

@@ -1,6 +1,6 @@
 /* 오프라인 캐시: stale-while-revalidate.
  * 배포 시 코드가 바뀌면 VERSION을 올려야 이전 캐시가 정리된다. */
-const VERSION = 'mst-v2';
+const VERSION = 'mst-v3';
 const CORE = [
   './', './index.html', './css/style.css',
   './js/data.js', './js/store.js', './js/charts.js', './js/app.js',

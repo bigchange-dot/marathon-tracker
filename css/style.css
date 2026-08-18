@@ -85,8 +85,9 @@ main { max-width: 560px; margin: 0 auto; padding: 12px 12px 24px; }
 .banner-info { background: color-mix(in srgb, var(--series-1) 10%, var(--surface)); }
 
 /* 진행 바 */
-.progress { height: 8px; border-radius: 99px; background: color-mix(in srgb, var(--series-1) 15%, transparent); overflow: hidden; margin: 4px 0 2px; }
+.progress { position: relative; height: 8px; border-radius: 99px; background: color-mix(in srgb, var(--series-1) 15%, transparent); overflow: hidden; margin: 4px 0 2px; }
 .progress-fill { height: 100%; border-radius: 99px; background: var(--series-1); transition: width .3s; }
+.progress-marker { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: .55; }
 
 /* 다음 훈련 */
 .next-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -118,12 +119,11 @@ main { max-width: 560px; margin: 0 auto; padding: 12px 12px 24px; }
 .btn-row .btn { width: auto; margin: 0; flex: 1; text-align: center; }
 .btn-row .spacer { flex: 1; }
 
-/* 개인 기록 */
-.pb-row { display: flex; gap: 10px; }
-.pb-tile { flex: 1; background: color-mix(in srgb, var(--series-1) 6%, transparent); border-radius: 10px; padding: 10px 12px; }
-.pb-label { color: var(--muted); font-size: 12px; }
-.pb-value { font-size: 22px; font-weight: 800; }
-.pb-sub { color: var(--muted); font-size: 11.5px; }
+/* 진척도 타일 */
+.stat-row { display: flex; gap: 8px; margin-top: 10px; }
+.stat-tile { flex: 1; background: color-mix(in srgb, var(--series-1) 6%, transparent); border-radius: 10px; padding: 9px 10px; }
+.stat-label { color: var(--muted); font-size: 11.5px; }
+.stat-value { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
 
 /* 최근 기록 행 */
 .run-row {

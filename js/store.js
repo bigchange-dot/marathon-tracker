@@ -78,6 +78,9 @@ function fmtDur(sec) {
 }
 function paceRange(type) { const t = TYPES[type]; return t ? fmtPace(t.pace[0]) + '~' + fmtPace(t.pace[1]) : ''; }
 
+/* 시드된 과거 기록(hist-*)과 앱에서 직접 입력한 기록 구분 */
+function isAppRun(r) { return !r.id.startsWith('hist-'); }
+
 /* ---------- 플랜 파생 ---------- */
 
 function weekRange(week) { const start = addDays(PLAN_START, (week - 1) * 7); return [start, addDays(start, 6)]; }
@@ -160,7 +163,7 @@ function computeWarnings(runs) {
   }
   // 백업 리마인드: 마지막 내보내기 후 14일 경과 시
   const lb = Store.lastBackup();
-  const hasOwn = runs.some(r => !r.id.startsWith('hist-'));
+  const hasOwn = runs.some(isAppRun);
   if (hasOwn && (!lb || daysBetween(lb, today) >= 14)) {
     out.push({ level: 'info', icon: '💾', text: '기록 백업(JSON 내보내기)을 한 지 2주가 넘었습니다 — 가이드 탭에서 백업하세요.' });
   }
