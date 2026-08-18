@@ -168,7 +168,12 @@ function renderCalendar() {
       row.appendChild(h('span', 'chip chip-' + p.type, TYPES[p.type].short));
       const target = p.targetKm != null ? p.targetKm + 'km' : p.targetMin + '분';
       row.appendChild(h('span', 'plan-target', target));
-      const badge = { done: '✓ ' + (run ? run.distanceKm.toFixed(1) + 'km' : '완료'), missed: '놓침', today: '오늘', upcoming: '' }[st];
+      let doneLabel = '완료';
+      if (run) {
+        const pace = run.paceSec != null ? run.paceSec : (run.durationSec && run.distanceKm ? run.durationSec / run.distanceKm : null);
+        doneLabel = run.distanceKm.toFixed(1) + 'km' + (pace ? ' (' + fmtPace(pace) + ')' : '');
+      }
+      const badge = { done: '✓ ' + doneLabel, missed: '놓침', today: '오늘', upcoming: '' }[st];
       row.appendChild(h('span', 'plan-badge badge-' + st, badge));
       row.addEventListener('click', () => run ? openRecord({ runId: run.id }) : openRecord({ planId: p.id }));
       sec.appendChild(row);
