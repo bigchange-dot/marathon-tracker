@@ -494,5 +494,23 @@ document.addEventListener('DOMContentLoaded', () => {
   switchView('today');
   let rT;
   window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { if (activeView === 'stats') renderStats(); }, 200); });
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+  // SW 등록 + 자동 업데이트: 새 버전이 활성화되면 화면을 자동으로 다시 불러온다.
+  // (설치형 PWA는 새로고침 버튼이 없어 이 처리가 없으면 옛 화면이 계속 남는다)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      // 백그라운드에 있다가 앱으로 돌아올 때마다 새 버전 확인
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) reg.update().catch(() => {});
+      });
+    }).catch(() => {});
+    let hadController = !!navigator.serviceWorker.controller;
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController) { hadController = true; return; } // 최초 설치는 리로드 불필요
+      if (reloaded) return;
+      if ($('#record-dialog').open) { toast('새 버전 준비됨 — 다음 실행 시 적용됩니다'); return; }
+      reloaded = true;
+      location.reload();
+    });
+  }
 });
