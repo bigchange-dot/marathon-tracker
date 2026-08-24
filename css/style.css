@@ -105,6 +105,9 @@ main { max-width: 560px; margin: 0 auto; padding: 12px 12px 24px; }
 .chip-race { background: color-mix(in srgb, var(--critical) 15%, transparent); }
 .chip-rhythm { background: color-mix(in srgb, var(--serious) 15%, transparent); }
 .chip-easy, .chip-recovery { background: color-mix(in srgb, var(--good) 12%, transparent); }
+.chip-buildup { background: color-mix(in srgb, var(--warning) 20%, transparent); }
+.chip-steady { background: color-mix(in srgb, var(--serious) 30%, transparent); }
+.chip-tempo { background: color-mix(in srgb, var(--critical) 28%, transparent); }
 
 /* 버튼 */
 .btn {

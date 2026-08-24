@@ -187,16 +187,18 @@ function renderCalendar() {
 
 /* ---------- 통계 ---------- */
 
-function filterRuns(runs) {
-  if (statsFilter === 'all') return runs;
-  if (statsFilter === 'easyrec') return runs.filter(r => r.type === 'easy' || r.type === 'recovery');
-  return runs.filter(r => r.type === statsFilter);
-}
-function filterPlansType(p) {
+// 필터 그룹 — 개별 타입 키가 아닌 묶음 필터
+const FILTER_GROUPS = {
+  easyrec: ['easy', 'recovery'],
+  quality: ['rhythm', 'buildup', 'steady', 'tempo'],
+};
+function matchesFilter(type) {
   if (statsFilter === 'all') return true;
-  if (statsFilter === 'easyrec') return p.type === 'easy' || p.type === 'recovery';
-  return p.type === statsFilter;
+  const g = FILTER_GROUPS[statsFilter];
+  return g ? g.includes(type) : type === statsFilter;
 }
+function filterRuns(runs) { return runs.filter(r => matchesFilter(r.type)); }
+function filterPlansType(p) { return matchesFilter(p.type); }
 
 function renderStats() {
   const root = $('#view-stats');
@@ -206,7 +208,7 @@ function renderStats() {
 
   // 필터 행 — 아래 모든 차트/표를 스코프
   const fRow = h('div', 'filter-row');
-  [['all', '전체'], ['long', '롱런'], ['rhythm', '리듬'], ['easyrec', '회복·보조'], ['race', '대회']].forEach(([key, label]) => {
+  [['all', '전체'], ['long', '롱런'], ['quality', '퀄리티'], ['easyrec', '회복·보조'], ['race', '대회']].forEach(([key, label]) => {
     const b = h('button', 'filter-chip' + (statsFilter === key ? ' on' : ''), label);
     b.addEventListener('click', () => { statsFilter = key; renderStats(); });
     fRow.appendChild(b);
