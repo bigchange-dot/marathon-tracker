@@ -387,6 +387,8 @@ function renderGuide() {
   data.appendChild(btnRow);
   root.appendChild(data);
 
+  root.appendChild(AI.settingsCard());
+
   const about = h('section', 'card');
   about.appendChild(h('div', 'card-title', 'ℹ️ 사용 팁'));
   ['폰 브라우저 메뉴에서 "홈 화면에 추가"하면 앱처럼 쓸 수 있습니다.',
@@ -404,6 +406,7 @@ function openRecord({ planId, runId }) {
   form.reset();
   $('#f-id').value = ''; $('#f-plan').value = '';
   $('#f-delete').hidden = true;
+  $('#f-ai').hidden = true;
   $('#pain-out').textContent = '0';
 
   if (runId) {
@@ -426,6 +429,7 @@ function openRecord({ planId, runId }) {
     $('#f-pain').value = r.shinPain ?? 0; $('#pain-out').textContent = r.shinPain ?? 0;
     $('#f-shoes').value = r.shoes ?? ''; $('#f-notes').value = r.notes ?? '';
     $('#f-delete').hidden = false;
+    $('#f-ai').hidden = false;
   } else {
     $('#record-title').textContent = '러닝 기록';
     const plan = planId ? PLANS.find(p => p.id === planId) : null;
@@ -453,10 +457,17 @@ function setupDialog() {
     Store.remove($('#f-id').value);
     dlg.close(); renderAll(); toast('기록을 삭제했습니다');
   });
+  $('#f-ai').addEventListener('click', () => {
+    const r = Store.byId($('#f-id').value);
+    if (!r) return;
+    dlg.close();
+    AI.open(r);
+  });
   $('#record-form').addEventListener('submit', e => {
     e.preventDefault();
     const dist = parseFloat($('#f-dist').value);
     if (!(dist > 0)) { toast('거리를 입력하세요'); return; }
+    const isNew = !$('#f-id').value;
     const sec = (parseInt($('#f-dh').value) || 0) * 3600 + (parseInt($('#f-dm').value) || 0) * 60 + (parseInt($('#f-ds').value) || 0);
     const run = {
       id: $('#f-id').value || 'r' + Date.now(),
@@ -477,6 +488,7 @@ function setupDialog() {
     Store.upsert(run);
     dlg.close(); renderAll();
     toast(run.shinPain >= 6 ? '기록 저장 — 통증 6+, 휴식이 훈련입니다' : '기록을 저장했습니다 🏃');
+    if (isNew) AI.afterSave(run); // 새 기록만 자동 분석 (수정 시엔 🤖 버튼으로)
   });
 }
 
@@ -497,6 +509,7 @@ function renderAll() { VIEWS[activeView](); }
 document.addEventListener('DOMContentLoaded', () => {
   Store.seedIfNeeded();
   setupDialog();
+  AI.setupDialog();
   $$('.tab').forEach(t => t.addEventListener('click', () => switchView(t.dataset.view)));
   switchView('today');
   let rT;

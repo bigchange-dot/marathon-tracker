@@ -1,9 +1,9 @@
 /* 오프라인 캐시: stale-while-revalidate.
  * 배포 시 코드가 바뀌면 VERSION을 올려야 이전 캐시가 정리된다. */
-const VERSION = 'mst-v6';
+const VERSION = 'mst-v7';
 const CORE = [
   './', './index.html', './css/style.css',
-  './js/data.js', './js/store.js', './js/charts.js', './js/app.js',
+  './js/data.js', './js/store.js', './js/charts.js', './js/ai.js', './js/app.js',
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
 ];
 

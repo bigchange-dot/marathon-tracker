@@ -257,6 +257,21 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 .pain-label output { font-weight: 800; color: var(--ink); }
 input[type="range"] { accent-color: var(--series-1); padding: 0; }
 
+/* AI 코치 */
+.ai-title { font-size: 16px; margin-bottom: 12px; }
+.ai-loading { color: var(--ink-2); font-size: 14px; padding: 20px 0; text-align: center; animation: ai-pulse 1.2s ease-in-out infinite; }
+@keyframes ai-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.ai-result { font-size: 14px; line-height: 1.65; white-space: pre-wrap; word-break: keep-all; }
+.ai-error { color: var(--critical); font-size: 13.5px; background: color-mix(in srgb, var(--critical) 10%, var(--surface)); border-radius: 10px; padding: 10px 12px; }
+.ai-key-row { display: flex; gap: 8px; margin-top: 10px; }
+.ai-key-row input {
+  flex: 1; min-width: 0; font: inherit; font-size: 14px; color: var(--ink);
+  background: var(--page); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+}
+.ai-key-row .btn { width: auto; margin: 0; flex: none; }
+.ai-toggle { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13.5px; color: var(--ink-2); cursor: pointer; }
+.ai-toggle input { accent-color: var(--series-1); width: 17px; height: 17px; }
+
 /* 토스트 */
 #toast {
   position: fixed; left: 50%; bottom: calc(76px + env(safe-area-inset-bottom));
