@@ -11,7 +11,8 @@ const AI = (() => {
   const setKey = k => k ? localStorage.setItem(KEY_STORE, k) : localStorage.removeItem(KEY_STORE);
   const autoOn = () => localStorage.getItem(AUTO_STORE) !== '0';
   const setAuto = on => localStorage.setItem(AUTO_STORE, on ? '1' : '0');
-  const isGemini = k => k.startsWith('AIza');
+  // Gemini 키는 형식이 여러 가지(AIza…, AQ.… 등) — Claude(sk-ant-)만 구분하고 나머지는 Gemini로 취급
+  const isGemini = k => !k.startsWith('sk-ant-');
 
   const SYSTEM = '간결하고 실전적인 마라톤 코치. 과한 격려나 뻔한 조언 없이 데이터에 근거해 짚는다.';
 
@@ -218,17 +219,16 @@ const AI = (() => {
   function settingsCard() {
     const card = el('section', 'card');
     card.appendChild(el('div', 'card-title', '🤖 AI 코치 설정'));
-    card.appendChild(el('div', 'muted-line', '기록을 저장하면 AI가 바로 세션을 분석합니다. Gemini 키(AIza…, aistudio.google.com/apikey 에서 무료 발급)나 Claude 키(sk-ant-…)를 넣으면 자동 인식합니다. 키는 이 기기(브라우저)에만 저장되며 어디에도 업로드되지 않습니다. 키가 없으면 프롬프트 복사 방식으로 동작합니다.'));
+    card.appendChild(el('div', 'muted-line', '기록을 저장하면 AI가 바로 세션을 분석합니다. Gemini 키(aistudio.google.com/apikey 에서 무료 발급 — AIza…, AQ.… 등 형식 무관)나 Claude 키(sk-ant-…)를 넣으면 자동 인식합니다. 키는 이 기기(브라우저)에만 저장되며 어디에도 업로드되지 않습니다. 키가 없으면 프롬프트 복사 방식으로 동작합니다.'));
 
     const row = el('div', 'ai-key-row');
     const input = document.createElement('input');
-    input.type = 'password'; input.placeholder = 'AIza… 또는 sk-ant-…'; input.autocomplete = 'off';
+    input.type = 'password'; input.placeholder = 'Gemini 또는 Claude API 키'; input.autocomplete = 'off';
     input.value = getKey();
     const save = el('button', 'btn btn-primary', '저장');
     save.type = 'button';
     save.addEventListener('click', () => {
       const v = input.value.trim();
-      if (v && !v.startsWith('sk-ant-') && !v.startsWith('AIza')) { alert('AIza 로 시작하는 Gemini 키 또는 sk-ant- 로 시작하는 Claude 키를 입력하세요.'); return; }
       setKey(v);
       save.textContent = v ? (isGemini(v) ? 'Gemini ✓' : 'Claude ✓') : '삭제됨';
       setTimeout(() => save.textContent = '저장', 1500);
