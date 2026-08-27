@@ -1,6 +1,7 @@
-/* AI 코치 분석 — 기록 저장 직후 Claude API로 즉시 피드백.
+/* AI 코치 분석 — 기록 저장 직후 AI API로 즉시 피드백.
+ * 키 접두사로 제공자 자동 판별: AIza… = Google Gemini(무료 한도), sk-ant-… = Anthropic Claude.
  * API 키는 이 브라우저의 localStorage에만 저장된다 (절대 커밋·서버 전송 없음).
- * 키가 없으면 프롬프트 복사 → Claude 앱에 붙여넣는 경로로 대체. */
+ * 키가 없으면 프롬프트 복사 → AI 앱에 붙여넣는 경로로 대체. */
 
 const AI = (() => {
   const KEY_STORE = 'mst.aiKey.v1';
@@ -10,6 +11,9 @@ const AI = (() => {
   const setKey = k => k ? localStorage.setItem(KEY_STORE, k) : localStorage.removeItem(KEY_STORE);
   const autoOn = () => localStorage.getItem(AUTO_STORE) !== '0';
   const setAuto = on => localStorage.setItem(AUTO_STORE, on ? '1' : '0');
+  const isGemini = k => k.startsWith('AIza');
+
+  const SYSTEM = '간결하고 실전적인 마라톤 코치. 과한 격려나 뻔한 조언 없이 데이터에 근거해 짚는다.';
 
   /* ---------- 프롬프트 구성 ---------- */
 
@@ -75,21 +79,53 @@ const AI = (() => {
     }
 
     lines.push('', '## 요청',
-      '다음 세 가지를 한국어로, 마크다운 헤더 없이 아래 이모지 라벨만 써서 간결하게 답해줘 (전체 12문장 이내):',
+      '다음 세 가지를 한국어 일반 텍스트로 답해줘. 마크다운 문법(#, **, 표) 금지, 아래 이모지 라벨만 사용, 전체 12문장 이내:',
       '✅ 세션 평가 — 목표 페이스존·계획 대비 어땠는지, 잘한 점과 아쉬운 점',
       '⚠️ 리스크 체크 — 통증·심박·주간 부하 급증 등 경고 신호가 있는지',
       '👉 다음 훈련 조언 — 다음 예정 세션을 어떻게 소화할지 구체적으로');
     return lines.join('\n');
   }
 
-  /* ---------- Claude API 호출 ---------- */
+  /* ---------- AI API 호출 (Gemini / Claude 자동 판별) ---------- */
 
-  async function analyze(run) {
+  function analyze(run) {
+    const key = getKey();
+    return isGemini(key) ? analyzeGemini(key, run) : analyzeClaude(key, run);
+  }
+
+  async function analyzeGemini(key, run) {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM }] },
+        contents: [{ role: 'user', parts: [{ text: buildPrompt(run) }] }],
+        // 2.5-flash는 사고(thinking)가 기본 켜짐 — 끄지 않으면 사고 토큰이
+        // maxOutputTokens를 소진해 빈 응답이 올 수 있다.
+        generationConfig: { maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } },
+      }),
+    });
+    if (!res.ok) {
+      let msg = 'HTTP ' + res.status;
+      try { msg = (await res.json()).error.message || msg; } catch {}
+      if (res.status === 400 || res.status === 401 || res.status === 403) msg = 'Gemini API 키가 올바르지 않습니다. 가이드 탭에서 다시 설정하세요. (' + msg + ')';
+      if (res.status === 429) msg = 'Gemini 무료 한도 초과 — 1분 뒤 🤖 버튼으로 다시 시도하세요.';
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    if (data.promptFeedback && data.promptFeedback.blockReason) throw new Error('요청이 차단되었습니다: ' + data.promptFeedback.blockReason);
+    const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+    const text = parts.map(p => p.text || '').join('').trim();
+    if (!text) throw new Error('빈 응답 — 잠시 후 다시 시도하세요.');
+    return text;
+  }
+
+  async function analyzeClaude(key, run) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': getKey(),
+        'x-api-key': key,
         'anthropic-version': '2023-06-01',
         'anthropic-beta': 'server-side-fallback-2026-07-01',
         'anthropic-dangerous-direct-browser-access': 'true',
@@ -99,7 +135,7 @@ const AI = (() => {
         max_tokens: 16000,
         output_config: { effort: 'low' },
         fallbacks: 'default',
-        system: '간결하고 실전적인 마라톤 코치. 과한 격려나 뻔한 조언 없이 데이터에 근거해 짚는다.',
+        system: SYSTEM,
         messages: [{ role: 'user', content: buildPrompt(run) }],
       }),
     });
@@ -140,20 +176,20 @@ const AI = (() => {
     const body = document.getElementById('ai-body');
     body.replaceChildren();
 
-    const copyBtn = el('button', 'btn btn-ghost', '📋 분석 프롬프트 복사 (Claude 앱에 붙여넣기)');
+    const copyBtn = el('button', 'btn btn-ghost', '📋 분석 프롬프트 복사 (AI 앱에 붙여넣기)');
     copyBtn.type = 'button';
     copyBtn.addEventListener('click', async () => {
-      copyBtn.textContent = (await copyPrompt(run)) ? '✓ 복사됨 — Claude 앱에 붙여넣으세요' : '복사 실패';
+      copyBtn.textContent = (await copyPrompt(run)) ? '✓ 복사됨 — Gemini/Claude 앱에 붙여넣으세요' : '복사 실패';
     });
 
     if (!getKey()) {
-      body.appendChild(el('div', 'muted-line', 'API 키가 없어도 아래 버튼으로 프롬프트를 복사해 Claude 앱에서 바로 분석할 수 있습니다. 앱 안에서 자동 분석을 원하면 가이드 탭 → AI 코치 설정에 키를 등록하세요.'));
+      body.appendChild(el('div', 'muted-line', 'API 키가 없어도 아래 버튼으로 프롬프트를 복사해 Gemini·Claude 앱에서 바로 분석할 수 있습니다. 앱 안에서 자동 분석을 원하면 가이드 탭 → AI 코치 설정에 키를 등록하세요.'));
       body.appendChild(copyBtn);
       dlg.showModal();
       return;
     }
 
-    const loading = el('div', 'ai-loading', '🤖 분석 중… (수십 초 걸릴 수 있어요)');
+    const loading = el('div', 'ai-loading', isGemini(getKey()) ? '🤖 분석 중…' : '🤖 분석 중… (수십 초 걸릴 수 있어요)');
     body.appendChild(loading);
     dlg.showModal();
 
@@ -182,19 +218,19 @@ const AI = (() => {
   function settingsCard() {
     const card = el('section', 'card');
     card.appendChild(el('div', 'card-title', '🤖 AI 코치 설정'));
-    card.appendChild(el('div', 'muted-line', '기록을 저장하면 Claude가 바로 세션을 분석합니다. API 키는 이 기기(브라우저)에만 저장되며 어디에도 업로드되지 않습니다. 키가 없으면 프롬프트 복사 방식으로 동작합니다.'));
+    card.appendChild(el('div', 'muted-line', '기록을 저장하면 AI가 바로 세션을 분석합니다. Gemini 키(AIza…, aistudio.google.com/apikey 에서 무료 발급)나 Claude 키(sk-ant-…)를 넣으면 자동 인식합니다. 키는 이 기기(브라우저)에만 저장되며 어디에도 업로드되지 않습니다. 키가 없으면 프롬프트 복사 방식으로 동작합니다.'));
 
     const row = el('div', 'ai-key-row');
     const input = document.createElement('input');
-    input.type = 'password'; input.placeholder = 'sk-ant-...'; input.autocomplete = 'off';
+    input.type = 'password'; input.placeholder = 'AIza… 또는 sk-ant-…'; input.autocomplete = 'off';
     input.value = getKey();
     const save = el('button', 'btn btn-primary', '저장');
     save.type = 'button';
     save.addEventListener('click', () => {
       const v = input.value.trim();
-      if (v && !v.startsWith('sk-ant-')) { alert('sk-ant- 로 시작하는 Anthropic API 키를 입력하세요.'); return; }
+      if (v && !v.startsWith('sk-ant-') && !v.startsWith('AIza')) { alert('AIza 로 시작하는 Gemini 키 또는 sk-ant- 로 시작하는 Claude 키를 입력하세요.'); return; }
       setKey(v);
-      save.textContent = v ? '저장됨 ✓' : '삭제됨';
+      save.textContent = v ? (isGemini(v) ? 'Gemini ✓' : 'Claude ✓') : '삭제됨';
       setTimeout(() => save.textContent = '저장', 1500);
     });
     row.append(input, save);
