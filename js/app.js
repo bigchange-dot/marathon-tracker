@@ -408,6 +408,32 @@ function renderGuide() {
   data.appendChild(btnRow);
   root.appendChild(data);
 
+  // 러닝화 관리 — 잘못 등록한 이름을 드롭다운에서 제거
+  const shoes = Store.knownShoes();
+  if (shoes.length) {
+    const shoeCard = h('section', 'card');
+    shoeCard.appendChild(h('div', 'card-title', '👟 러닝화 관리'));
+    const usage = new Map(Store.shoeMileage().map(m => [m.shoes, m]));
+    shoes.forEach(name => {
+      const m = usage.get(name);
+      const row = h('div', 'shoe-manage-row');
+      row.append(h('span', 'shoe-name', name),
+        h('span', 'shoe-meta', m ? m.km.toFixed(1) + 'km · ' + m.count + '회' : '사용 기록 없음'));
+      const del = h('button', 'btn btn-danger btn-small', '삭제');
+      del.type = 'button';
+      del.addEventListener('click', () => {
+        if (m) { toast(`이 신발을 쓰는 기록이 ${m.count}개 있습니다 — 해당 기록의 신발을 먼저 바꿔주세요`); return; }
+        if (!confirm(`"${name}"을(를) 드롭다운에서 삭제할까요?`)) return;
+        Store.removeShoe(name);
+        renderGuide(); toast('삭제했습니다');
+      });
+      row.appendChild(del);
+      shoeCard.appendChild(row);
+    });
+    shoeCard.appendChild(h('div', 'muted-line', '기록에 쓰인 신발은 삭제할 수 없습니다. 잘못 등록한 이름이면 해당 기록을 열어 신발을 바꾼 뒤 삭제하세요.'));
+    root.appendChild(shoeCard);
+  }
+
   root.appendChild(AI.settingsCard());
 
   const about = h('section', 'card');

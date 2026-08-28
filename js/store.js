@@ -57,6 +57,9 @@ const Store = (() => {
     const l = shoeList();
     if (!l.includes(name)) { l.push(name); localStorage.setItem(SHOES_KEY, JSON.stringify(l)); }
   }
+  function removeShoe(name) {
+    localStorage.setItem(SHOES_KEY, JSON.stringify(shoeList().filter(s => s !== name)));
+  }
   /* 드롭다운 후보 = 등록 목록 ∪ 기록에 등장한 신발 (편집 시 목록에 없는 이름도 보이게) */
   function knownShoes() {
     const set = new Set(shoeList());
@@ -76,7 +79,7 @@ const Store = (() => {
     return [...m.values()].sort((a, b) => b.km - a.km);
   }
 
-  return { seedIfNeeded, all, upsert, remove, byId, exportJson, importJson, lastBackup, shoeList, addShoe, knownShoes, shoeMileage };
+  return { seedIfNeeded, all, upsert, remove, byId, exportJson, importJson, lastBackup, shoeList, addShoe, removeShoe, knownShoes, shoeMileage };
 })();
 
 /* ---------- 날짜/포맷 헬퍼 ---------- */
