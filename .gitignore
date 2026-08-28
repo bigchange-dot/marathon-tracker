@@ -1,3 +1,4 @@
 *.Zone.Identifier
 *:Zone.Identifier
 node_modules/
+docs/
