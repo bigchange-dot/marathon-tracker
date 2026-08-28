@@ -94,22 +94,31 @@ const AI = (() => {
     return isGemini(key) ? analyzeGemini(key, run) : analyzeClaude(key, run);
   }
 
+  // gemini-2.5-flash 서비스 종료(2026-07)로 3.5-flash 전환.
+  // 모델이 또 종료되면(404) 다음 후보로 자동 재시도해 앱 업데이트 전까지 버틴다.
+  const GEMINI_MODELS = ['gemini-3.5-flash', 'gemini-3.7-flash'];
+
   async function analyzeGemini(key, run) {
-    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM }] },
-        contents: [{ role: 'user', parts: [{ text: buildPrompt(run) }] }],
-        // 2.5-flash는 사고(thinking)가 기본 켜짐 — 끄지 않으면 사고 토큰이
-        // maxOutputTokens를 소진해 빈 응답이 올 수 있다.
-        generationConfig: { maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } },
-      }),
-    });
+    let res;
+    for (const model of GEMINI_MODELS) {
+      res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: SYSTEM }] },
+          contents: [{ role: 'user', parts: [{ text: buildPrompt(run) }] }],
+          // 3.x는 thinkingBudget 대신 thinkingLevel(문자열) — minimal로 사고 토큰이
+          // maxOutputTokens를 소진하는 것을 막는다. 둘을 같이 보내면 400 에러.
+          generationConfig: { maxOutputTokens: 4096, thinkingConfig: { thinkingLevel: 'minimal' } },
+        }),
+      });
+      if (res.status !== 404) break; // 404 = 모델 서비스 종료 → 다음 후보
+    }
     if (!res.ok) {
       let msg = 'HTTP ' + res.status;
       try { msg = (await res.json()).error.message || msg; } catch {}
       if (res.status === 400 || res.status === 401 || res.status === 403) msg = 'Gemini API 키가 올바르지 않습니다. 가이드 탭에서 다시 설정하세요. (' + msg + ')';
+      if (res.status === 404) msg = 'Gemini 모델이 모두 서비스 종료되었습니다 — 앱 업데이트가 필요합니다. (' + msg + ')';
       if (res.status === 429) msg = 'Gemini 무료 한도 초과 — 1분 뒤 🤖 버튼으로 다시 시도하세요.';
       throw new Error(msg);
     }
