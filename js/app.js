@@ -254,6 +254,27 @@ function renderStats() {
   const cc3 = h('div', 'chart-box'); c3.appendChild(cc3); root.appendChild(c3);
   Charts.pain(cc3, runs);
 
+  // 러닝화 마일리지 — 신발 수명 관리용이라 타입 필터와 무관하게 전체 기록 기준
+  const mileage = Store.shoeMileage();
+  if (mileage.length) {
+    const sc = h('section', 'card');
+    sc.appendChild(h('div', 'card-title', '👟 러닝화 마일리지'));
+    mileage.forEach(m => {
+      const row = h('div', 'shoe-row');
+      const head = h('div', 'shoe-head');
+      head.append(h('span', 'shoe-name', m.shoes),
+        h('span', 'shoe-meta', m.km.toFixed(1) + 'km · ' + m.count + '회 · 마지막 ' + fmtDateShort(m.last)));
+      const bar = h('div', 'shoe-bar');
+      const fill = h('div', 'shoe-fill' + (m.km >= 700 ? ' crit' : m.km >= 500 ? ' warn' : ''));
+      fill.style.width = Math.min(m.km / 800 * 100, 100) + '%';
+      bar.appendChild(fill);
+      row.append(head, bar);
+      sc.appendChild(row);
+    });
+    sc.appendChild(h('div', 'muted-line', '막대는 800km 기준. 보통 500~800km에서 교체를 검토합니다 (500km↑ 노랑, 700km↑ 빨강). 타입 필터와 무관한 전체 누적입니다.'));
+    root.appendChild(sc);
+  }
+
   // 테이블 뷰 (차트의 접근성 트윈)
   const tCard = h('section', 'card');
   tCard.appendChild(h('div', 'card-title', '기록 목록'));
@@ -400,6 +421,24 @@ function renderGuide() {
 
 /* ---------- 기록 다이얼로그 ---------- */
 
+/* 새 기록의 러닝화 기본값 = 가장 최근 기록에 쓴 신발 */
+function lastShoe() {
+  const withShoes = Store.all().filter(r => r.shoes);
+  return withShoes.length ? withShoes[withShoes.length - 1].shoes : null;
+}
+
+function fillShoeOptions(selected) {
+  const sel = $('#f-shoes-sel');
+  sel.replaceChildren();
+  const opt = (v, t) => { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); };
+  opt('', '(선택 안 함)');
+  Store.knownShoes().forEach(s => opt(s, s));
+  opt('__new__', '＋ 새 러닝화 등록…');
+  sel.value = selected || '';
+  $('#f-shoes-new').hidden = true;
+  $('#f-shoes-new').value = '';
+}
+
 function openRecord({ planId, runId }) {
   const dlg = $('#record-dialog');
   const form = $('#record-form');
@@ -427,7 +466,7 @@ function openRecord({ planId, runId }) {
     $('#f-cad').value = r.cadence ?? '';
     $('#f-runwalk').value = r.runWalk ?? '';
     $('#f-pain').value = r.shinPain ?? 0; $('#pain-out').textContent = r.shinPain ?? 0;
-    $('#f-shoes').value = r.shoes ?? ''; $('#f-notes').value = r.notes ?? '';
+    fillShoeOptions(r.shoes); $('#f-notes').value = r.notes ?? '';
     $('#f-delete').hidden = false;
     $('#f-ai').hidden = false;
   } else {
@@ -436,6 +475,7 @@ function openRecord({ planId, runId }) {
     $('#f-date').value = plan ? plan.date : todayStr();
     $('#f-type').value = plan ? plan.type : 'recovery';
     if (plan) { $('#f-plan').value = plan.id; if (plan.targetKm) $('#f-dist').value = plan.targetKm; }
+    fillShoeOptions(lastShoe());
   }
   updatePacePreview();
   dlg.showModal();
@@ -451,6 +491,11 @@ function setupDialog() {
   const dlg = $('#record-dialog');
   ['#f-dist', '#f-dh', '#f-dm', '#f-ds'].forEach(s => $(s).addEventListener('input', updatePacePreview));
   $('#f-pain').addEventListener('input', () => $('#pain-out').textContent = $('#f-pain').value);
+  $('#f-shoes-sel').addEventListener('change', () => {
+    const isNew = $('#f-shoes-sel').value === '__new__';
+    $('#f-shoes-new').hidden = !isNew;
+    if (isNew) $('#f-shoes-new').focus();
+  });
   $('#f-cancel').addEventListener('click', () => dlg.close());
   $('#f-delete').addEventListener('click', () => {
     if (!confirm('이 기록을 삭제할까요?')) return;
@@ -482,9 +527,10 @@ function setupDialog() {
       cadence: parseInt($('#f-cad').value) || null,
       runWalk: $('#f-runwalk').value.trim() || null,
       shinPain: $('#f-pain').value === '' ? null : parseInt($('#f-pain').value),
-      shoes: $('#f-shoes').value.trim() || null,
+      shoes: ($('#f-shoes-sel').value === '__new__' ? $('#f-shoes-new').value : $('#f-shoes-sel').value).trim() || null,
       notes: $('#f-notes').value.trim() || null,
     };
+    if (run.shoes) Store.addShoe(run.shoes); // 한 번 쓴 신발은 드롭다운에 자동 등록
     Store.upsert(run);
     dlg.close(); renderAll();
     toast(run.shinPain >= 6 ? '기록 저장 — 통증 6+, 휴식이 훈련입니다' : '기록을 저장했습니다 🏃');

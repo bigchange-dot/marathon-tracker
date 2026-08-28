@@ -5,6 +5,7 @@ const Store = (() => {
   const KEY = 'mst.runs.v1';
   const SEED_KEY = 'mst.seeded.v1';
   const BACKUP_KEY = 'mst.lastBackup.v1';
+  const SHOES_KEY = 'mst.shoes.v1'; // 등록된 러닝화 이름 목록
 
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || []; }
@@ -46,7 +47,36 @@ const Store = (() => {
   }
   function lastBackup() { return localStorage.getItem(BACKUP_KEY); }
 
-  return { seedIfNeeded, all, upsert, remove, byId, exportJson, importJson, lastBackup };
+  /* ---------- 러닝화 ---------- */
+
+  function shoeList() {
+    try { return JSON.parse(localStorage.getItem(SHOES_KEY)) || []; }
+    catch { return []; }
+  }
+  function addShoe(name) {
+    const l = shoeList();
+    if (!l.includes(name)) { l.push(name); localStorage.setItem(SHOES_KEY, JSON.stringify(l)); }
+  }
+  /* 드롭다운 후보 = 등록 목록 ∪ 기록에 등장한 신발 (편집 시 목록에 없는 이름도 보이게) */
+  function knownShoes() {
+    const set = new Set(shoeList());
+    load().forEach(r => { if (r.shoes) set.add(r.shoes); });
+    return [...set].sort((a, b) => a.localeCompare(b, 'ko'));
+  }
+  /* 신발별 누적 마일리지 — 타입 필터와 무관하게 전체 기록 기준 */
+  function shoeMileage() {
+    const m = new Map();
+    load().forEach(r => {
+      if (!r.shoes) return;
+      const s = m.get(r.shoes) || { shoes: r.shoes, km: 0, count: 0, last: null };
+      s.km += r.distanceKm || 0; s.count++;
+      if (!s.last || r.date > s.last) s.last = r.date;
+      m.set(r.shoes, s);
+    });
+    return [...m.values()].sort((a, b) => b.km - a.km);
+  }
+
+  return { seedIfNeeded, all, upsert, remove, byId, exportJson, importJson, lastBackup, shoeList, addShoe, knownShoes, shoeMileage };
 })();
 
 /* ---------- 날짜/포맷 헬퍼 ---------- */

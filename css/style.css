@@ -262,6 +262,16 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 #record-form input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .dur-row { display: flex; gap: 6px; }
 .dur-row input { padding: 8px 4px; text-align: center; min-width: 0; }
+/* 러닝화 마일리지 */
+.shoe-row { margin-top: 10px; }
+.shoe-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.shoe-name { font-weight: 700; font-size: 13.5px; }
+.shoe-meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.shoe-bar { height: 6px; border-radius: 3px; background: var(--grid); margin-top: 5px; overflow: hidden; }
+.shoe-fill { height: 100%; border-radius: 3px; background: var(--series-1); }
+.shoe-fill.warn { background: var(--warning); }
+.shoe-fill.crit { background: var(--critical); }
+
 /* line-height를 min-height와 일치시켜 텍스트가 나타나도 높이가 안 변하게 (다이얼로그 재중앙정렬 방지) */
 .pace-preview { color: var(--series-1); font-weight: 700; font-size: 13.5px; margin-top: 8px; line-height: 1.2; min-height: 1.2em; }
 .pain-label output { font-weight: 800; color: var(--ink); }

@@ -67,7 +67,10 @@
     <label class="pain-label">정강이 통증 <output id="pain-out">0</output>/10
       <input type="range" id="f-pain" min="0" max="10" value="0">
     </label>
-    <label>러닝화<input type="text" id="f-shoes" placeholder="착용 러닝화"></label>
+    <label>러닝화
+      <select id="f-shoes-sel"></select>
+      <input type="text" id="f-shoes-new" placeholder="새 러닝화 이름 (예: 페가수스 41)" hidden>
+    </label>
     <label>메모<textarea id="f-notes" rows="2" placeholder="날씨, 컨디션, 특이사항"></textarea></label>
     <div class="btn-row">
       <button type="button" id="f-delete" class="btn btn-danger" hidden>삭제</button>
