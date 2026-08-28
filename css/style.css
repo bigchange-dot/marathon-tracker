@@ -244,13 +244,21 @@ dialog {
 }
 dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 #record-form h2 { font-size: 16px; margin-bottom: 12px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-#record-form label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--ink-2); margin-top: 6px; }
+/* minmax(0,1fr): 1fr만 쓰면 minmax(auto,1fr)이라 date 입력의 고유 폭이
+ * 셀을 밀어내 옆 칸(타입)과 겹친다 — 좁은 화면에서 셀이 내용보다 작아질 수 있게 강제 */
+.form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+#record-form label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--ink-2); margin-top: 6px; min-width: 0; }
 #record-form input, #record-form select, #record-form textarea {
   font: inherit; font-size: 14px; color: var(--ink);
   background: var(--page); border: 1px solid var(--border); border-radius: 8px;
-  padding: 8px 10px; width: 100%;
+  padding: 8px 10px; width: 100%; min-width: 0;
 }
+/* iOS/모바일 date 입력은 기본 외형의 고정 폭 때문에 칸을 넘친다 — 외형을 직접 그려 일반 입력처럼 줄어들게 */
+#record-form input[type="date"] {
+  -webkit-appearance: none; appearance: none;
+  min-height: 38px; /* appearance:none 시 iOS에서 높이가 주저앉는 것 방지 */
+}
+#record-form input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .dur-row { display: flex; gap: 6px; }
 .dur-row input { padding: 8px 4px; text-align: center; min-width: 0; }
 .pace-preview { color: var(--series-1); font-weight: 700; font-size: 13.5px; margin-top: 8px; min-height: 1.2em; }
