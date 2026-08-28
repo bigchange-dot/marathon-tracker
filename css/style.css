@@ -249,7 +249,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 .form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 #record-form label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--ink-2); margin-top: 6px; min-width: 0; }
 #record-form input, #record-form select, #record-form textarea {
-  font: inherit; font-size: 14px; color: var(--ink);
+  /* 16px 미만이면 iOS가 입력칸 포커스마다 화면을 자동 확대(줌)해서 화면이 널뛴다 */
+  font: inherit; font-size: 16px; color: var(--ink);
   background: var(--page); border: 1px solid var(--border); border-radius: 8px;
   padding: 8px 10px; width: 100%; min-width: 0;
 }
@@ -261,7 +262,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 #record-form input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .dur-row { display: flex; gap: 6px; }
 .dur-row input { padding: 8px 4px; text-align: center; min-width: 0; }
-.pace-preview { color: var(--series-1); font-weight: 700; font-size: 13.5px; margin-top: 8px; min-height: 1.2em; }
+/* line-height를 min-height와 일치시켜 텍스트가 나타나도 높이가 안 변하게 (다이얼로그 재중앙정렬 방지) */
+.pace-preview { color: var(--series-1); font-weight: 700; font-size: 13.5px; margin-top: 8px; line-height: 1.2; min-height: 1.2em; }
 .pain-label output { font-weight: 800; color: var(--ink); }
 input[type="range"] { accent-color: var(--series-1); padding: 0; }
 
@@ -273,7 +275,7 @@ input[type="range"] { accent-color: var(--series-1); padding: 0; }
 .ai-error { color: var(--critical); font-size: 13.5px; background: color-mix(in srgb, var(--critical) 10%, var(--surface)); border-radius: 10px; padding: 10px 12px; }
 .ai-key-row { display: flex; gap: 8px; margin-top: 10px; }
 .ai-key-row input {
-  flex: 1; min-width: 0; font: inherit; font-size: 14px; color: var(--ink);
+  flex: 1; min-width: 0; font: inherit; font-size: 16px; color: var(--ink); /* 16px 미만 = iOS 포커스 줌 */
   background: var(--page); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
 }
 .ai-key-row .btn { width: auto; margin: 0; flex: none; }
