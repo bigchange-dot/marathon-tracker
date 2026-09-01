@@ -71,7 +71,7 @@ function renderToday() {
     const t = TYPES[np.type];
     const head = h('div', 'next-head');
     head.appendChild(h('span', 'chip chip-' + np.type, t.label));
-    head.appendChild(h('span', 'next-date', fmtDate(np.date) + ' · ' + np.session));
+    head.appendChild(h('span', 'next-date', fmtDate(np.date)));
     nCard.appendChild(head);
     const target = np.targetKm != null ? np.targetKm + 'km' : (np.targetMin ? np.targetMin + '분' : '');
     nCard.appendChild(h('div', 'next-target', target + (np.capMin ? ` (상한 ${Math.floor(np.capMin / 60)}:${String(np.capMin % 60).padStart(2, '0')})` : '')));
