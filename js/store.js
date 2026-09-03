@@ -135,12 +135,22 @@ function planStatus(plan, runs) {
   if (plan.date === today) return 'today';
   return 'upcoming';
 }
+/* 오늘 예정 > 이번 주 미기록(이월한 세션을 기록하는 경로) > 다가오는 훈련 순 */
 function nextPlan(runs) {
   const today = todayStr();
-  return PLANS.find(p => p.date >= today && !runForPlan(p, runs)) || null;
+  const cw = currentWeek();
+  const open = PLANS.filter(p => !runForPlan(p, runs));
+  return open.find(p => p.date === today)
+      || open.find(p => p.week === cw && p.date < today)
+      || open.find(p => p.date > today)
+      || null;
 }
 
+/* actualKm = 날짜 기준(몸에 걸린 실제 부하 — 급증 경고·이번 주 KPI용)
+ * attributedKm = 계획 귀속(planId가 있으면 그 계획의 주차로 — 캘린더·계획 대비 차트용)
+ * 이월된 훈련은 두 값이 갈린다: 내역 행과 합산이 같은 주에 보이려면 attributedKm를 쓴다. */
 function weeklyStats(runs) {
+  const planWeek = new Map(PLANS.map(p => [p.id, p.week]));
   const weeks = [];
   for (let w = 1; w <= TOTAL_WEEKS; w++) {
     const [start, end] = weekRange(w);
@@ -150,9 +160,14 @@ function weeklyStats(runs) {
       week: w, start, end, plans,
       planKm: plans.reduce((s, p) => s + (p.targetKm || 0), 0),
       actualKm: wRuns.reduce((s, r) => s + (r.distanceKm || 0), 0),
+      attributedKm: 0,
       runs: wRuns,
     });
   }
+  runs.forEach(r => {
+    const w = planWeek.get(r.planId) || weekOfDate(r.date);
+    if (w >= 1) weeks[w - 1].attributedKm += r.distanceKm || 0;
+  });
   return weeks;
 }
 
@@ -186,7 +201,7 @@ function computeWarnings(runs) {
     const [start] = weekRange(cw);
     const missed = PLANS.filter(p => p.week === cw && p.date >= start && p.date < today && p.targetKm != null && !runForPlan(p, runs));
     if (missed.length) {
-      out.push({ level: 'info', icon: 'ℹ️', text: `이번 주 놓친 훈련 ${missed.length}회 — 몰아서 보충하지 말고 다음 훈련부터 계획대로.` });
+      out.push({ level: 'info', icon: 'ℹ️', text: `이번 주 놓친 훈련 ${missed.length}회 — 다른 날 뛰었다면 날짜를 바꿔 기록하고, 안 뛰었다면 몰아서 보충하지 말고 다음 훈련부터 계획대로.` });
     }
     const weeks = weeklyStats(runs);
     const prev = weeks[cw - 2], cur = weeks[cw - 1];

@@ -28,6 +28,7 @@ const AI = (() => {
       r.avgHr ? '평균심박 ' + r.avgHr : null,
       r.cadence ? '케이던스 ' + r.cadence : null,
       r.runWalk ? '런워크 ' + r.runWalk : null,
+      r.shoes ? '신발 ' + r.shoes : null,
       r.shinPain != null ? '정강이통증 ' + r.shinPain + '/10' : null,
       r.notes ? '메모: ' + r.notes : null,
     ];
@@ -60,6 +61,10 @@ const AI = (() => {
     ];
 
     if (t) lines.push(`- 이 타입(${t.label})의 목표 페이스존: ${fmtPace(t.pace[0])}~${fmtPace(t.pace[1])}/km — ${t.desc}`);
+    if (run.shoes) {
+      const m = Store.shoeMileage().find(s => s.shoes === run.shoes);
+      if (m) lines.push(`- 신발: ${run.shoes} — 누적 ${m.km.toFixed(1)}km · ${m.count}회 사용 (500km부터 교체 검토)`);
+    }
     if (plan) {
       const target = plan.targetKm != null ? plan.targetKm + 'km' : (plan.targetMin ? plan.targetMin + '분' : '');
       lines.push(`- 계획된 세션: ${plan.week}주차 ${plan.date} ${target}` + (plan.note ? ` · 메모: ${plan.note}` : ''));

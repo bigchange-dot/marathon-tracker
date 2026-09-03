@@ -56,7 +56,7 @@ function renderToday() {
     fill.style.width = (duePlans.length ? (doneCnt / duePlans.length) * 100 : 0) + '%';
     bar.appendChild(fill);
     wkCard.appendChild(bar);
-    const line = h('div', 'muted-line', `이번 주 훈련 ${doneCnt}/${duePlans.length} · ${wk.actualKm.toFixed(1)}km / 계획 ${wk.planKm}km` + (ad ? ` · 전체 달성률 ${ad.pct}%` : ''));
+    const line = h('div', 'muted-line', `이번 주 훈련 ${doneCnt}/${duePlans.length} · ${wk.attributedKm.toFixed(1)}km / 계획 ${wk.planKm}km` + (ad ? ` · 전체 달성률 ${ad.pct}%` : ''));
     wkCard.appendChild(line);
   } else {
     wkCard.appendChild(h('div', 'muted-line', '플랜 기간(8/10~11/15) 밖입니다.'));
@@ -66,7 +66,8 @@ function renderToday() {
   // 다음 훈련
   const np = nextPlan(runs);
   const nCard = h('section', 'card next-card');
-  nCard.appendChild(h('div', 'card-title', np && np.date === today ? '오늘의 훈련' : '다음 훈련'));
+  nCard.appendChild(h('div', 'card-title',
+    np && np.date === today ? '오늘의 훈련' : np && np.date < today ? '이월된 훈련 (미기록)' : '다음 훈련'));
   if (np) {
     const t = TYPES[np.type];
     const head = h('div', 'next-head');
@@ -156,7 +157,7 @@ function renderCalendar() {
     const sec = h('section', 'card week-card' + (wk.week === cw ? ' week-now' : ''));
     const head = h('div', 'week-head');
     head.appendChild(h('span', 'week-title', `${wk.week}주차 · ${fmtDateShort(wk.start)}~${fmtDateShort(wk.end)}`));
-    head.appendChild(h('span', 'week-km', (wk.actualKm ? wk.actualKm.toFixed(1) + ' / ' : '') + wk.planKm + 'km'));
+    head.appendChild(h('span', 'week-km', (wk.attributedKm ? wk.attributedKm.toFixed(1) + ' / ' : '') + wk.planKm + 'km'));
     sec.appendChild(head);
     if (WEEK_NOTES[wk.week]) sec.appendChild(h('div', 'week-note', WEEK_NOTES[wk.week]));
 
@@ -164,7 +165,9 @@ function renderCalendar() {
       const st = planStatus(p, runs);
       const run = runForPlan(p, runs);
       const row = h('button', 'plan-row plan-' + st);
-      row.appendChild(h('span', 'plan-date', fmtDate(p.date)));
+      const dateCell = h('span', 'plan-date', fmtDate(p.date));
+      if (run && run.date !== p.date) dateCell.appendChild(h('span', 'plan-moved', '→ ' + fmtDate(run.date) + ' 실행'));
+      row.appendChild(dateCell);
       row.appendChild(h('span', 'chip chip-' + p.type, TYPES[p.type].short));
       const target = p.targetKm != null ? p.targetKm + 'km' : p.targetMin + '분';
       row.appendChild(h('span', 'plan-target', target));
@@ -239,7 +242,8 @@ function renderStats() {
   const c1 = h('section', 'card chart-card');
   c1.appendChild(h('div', 'card-title', '주간 거리 — 계획 vs 실적'));
   const cc1 = h('div', 'chart-box'); c1.appendChild(cc1); root.appendChild(c1);
-  const weeks = weeklyStats(runs).map(w => ({ ...w, planKm: w.plans.filter(filterPlansType).reduce((s, p) => s + (p.targetKm || 0), 0) }));
+  // 계획과 비교하는 차트이므로 이월 기록은 계획 주차로 귀속해서 그린다
+  const weeks = weeklyStats(runs).map(w => ({ ...w, actualKm: w.attributedKm, planKm: w.plans.filter(filterPlansType).reduce((s, p) => s + (p.targetKm || 0), 0) }));
   Charts.weekly(cc1, weeks);
 
   // 페이스 추이
@@ -440,6 +444,7 @@ function renderGuide() {
   about.appendChild(h('div', 'card-title', 'ℹ️ 사용 팁'));
   ['폰 브라우저 메뉴에서 "홈 화면에 추가"하면 앱처럼 쓸 수 있습니다.',
    '캘린더에서 훈련을 누르면 바로 기록할 수 있고, 완료된 기록을 누르면 수정됩니다.',
+   '훈련을 다른 날로 옮겨서 뛰었다면 계획 행을 눌러 날짜만 실제 뛴 날로 바꿔 저장하세요 — 캘린더에 "→ 실행일"로 표시되고 주간 합산은 계획 주차로 잡힙니다.',
    '통계 탭 상단 필터는 아래 모든 차트와 표에 동시에 적용됩니다.']
     .forEach(s => about.appendChild(h('div', 'guide-line', '· ' + s)));
   root.appendChild(about);
@@ -498,7 +503,8 @@ function openRecord({ planId, runId }) {
   } else {
     $('#record-title').textContent = '러닝 기록';
     const plan = planId ? PLANS.find(p => p.id === planId) : null;
-    $('#f-date').value = plan ? plan.date : todayStr();
+    // 지난 계획을 기록할 때는 오늘이 기본 — 이월해서 뛴 날짜가 계획일로 잘못 저장되는 실수 방지
+    $('#f-date').value = plan && plan.date >= todayStr() ? plan.date : todayStr();
     $('#f-type').value = plan ? plan.type : 'recovery';
     if (plan) { $('#f-plan').value = plan.id; if (plan.targetKm) $('#f-dist').value = plan.targetKm; }
     fillShoeOptions(lastShoe());
