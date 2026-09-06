@@ -59,7 +59,7 @@ function renderToday() {
     const line = h('div', 'muted-line', `이번 주 훈련 ${doneCnt}/${duePlans.length} · ${wk.attributedKm.toFixed(1)}km / 계획 ${wk.planKm}km` + (ad ? ` · 전체 달성률 ${ad.pct}%` : ''));
     wkCard.appendChild(line);
   } else {
-    wkCard.appendChild(h('div', 'muted-line', '플랜 기간(8/10~11/15) 밖입니다.'));
+    wkCard.appendChild(h('div', 'muted-line', '플랜 기간(8/11~11/15) 밖입니다.'));
   }
   root.appendChild(wkCard);
 
@@ -151,7 +151,7 @@ function renderCalendar() {
   if (planToDateKm > 0) pg.appendChild(h('div', 'muted-line', `오늘까지 계획 대비 ${Math.round(actualKm / planToDateKm * 100)}% · 막대의 세로선 = 오늘 계획 지점`));
   root.appendChild(pg);
 
-  root.appendChild(h('p', 'view-note', '월·수·금은 휴식 + 하체·종아리 보강(카프 레이즈 등). 놓친 훈련은 건너뛰고 다음 훈련부터 계획대로.'));
+  root.appendChild(h('p', 'view-note', '롱런은 월요일(9/7~), 주는 화→월로 센다. 화·목·토는 휴식 + 하체·종아리 보강(카프 레이즈 등). 놓친 훈련은 건너뛰고 다음 훈련부터 계획대로.'));
 
   weeks.forEach(wk => {
     const sec = h('section', 'card week-card' + (wk.week === cw ? ' week-now' : ''));
