@@ -47,6 +47,7 @@
           <option value="rhythm">리듬 유지주</option>
           <option value="steady">지속주</option>
           <option value="tempo">크루즈 인터벌</option>
+          <option value="trial">기록 측정</option>
           <option value="race">대회</option>
         </select>
       </label>
@@ -62,6 +63,12 @@
       <label>최대 심박<input type="number" id="f-maxhr" min="0" max="250" inputmode="numeric"></label>
       <label>케이던스 (spm)<input type="number" id="f-cad" min="0" max="250" inputmode="numeric"></label>
       <label>런워크 비율<input type="text" id="f-runwalk" placeholder="예: 9분 / 1분"></label>
+      <label id="f-trial-wrap" hidden>5km 기록 (전력 구간)
+        <span class="dur-row">
+          <input type="number" id="f-tm" placeholder="분" min="0" max="59" inputmode="numeric">
+          <input type="number" id="f-ts" placeholder="초" min="0" max="59" inputmode="numeric">
+        </span>
+      </label>
     </div>
     <div id="pace-preview" class="pace-preview"></div>
     <label class="pain-label">정강이 통증 <output id="pain-out">0</output>/10

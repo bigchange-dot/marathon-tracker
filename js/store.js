@@ -130,6 +130,12 @@ function paceText(type) {
   return paceRange(type);
 }
 
+/* 5km 측정 판정 — 기록(초) → TRIAL 트랙. 가장 최근 측정 기록 기준 */
+function trialTier(sec) { return TRIAL.tiers.find(t => sec <= t.maxSec); }
+function latestTrial(runs) { return [...runs].reverse().find(r => r.type === 'trial' && r.trialSec) || null; }
+function paceSpan(pace) { return pace[0] === pace[1] ? fmtPace(pace[0]) : fmtPace(pace[0]) + '~' + fmtPace(pace[1]); }
+function runSegSpan(pace) { return pace[0] === pace[1] ? fmtPace(runSegPace(pace[0])) : runSegRange(pace); }
+
 /* 시드된 과거 기록(hist-*)과 앱에서 직접 입력한 기록 구분 */
 function isAppRun(r) { return !r.id.startsWith('hist-'); }
 

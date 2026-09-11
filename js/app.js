@@ -174,7 +174,8 @@ function renderCalendar() {
       let doneLabel = '완료';
       if (run) {
         const pace = run.paceSec != null ? run.paceSec : (run.durationSec && run.distanceKm ? run.durationSec / run.distanceKm : null);
-        doneLabel = run.distanceKm.toFixed(1) + 'km' + (pace ? ' (' + fmtPace(pace) + ')' : '');
+        doneLabel = run.trialSec ? '5km ' + fmtDur(run.trialSec)
+          : run.distanceKm.toFixed(1) + 'km' + (pace ? ' (' + fmtPace(pace) + ')' : '');
       }
       const badge = { done: '✓ ' + doneLabel, missed: '놓침', today: '오늘', upcoming: '' }[st];
       row.appendChild(h('span', 'plan-badge badge-' + st, badge));
@@ -193,7 +194,7 @@ function renderCalendar() {
 // 필터 그룹 — 개별 타입 키가 아닌 묶음 필터
 const FILTER_GROUPS = {
   easyrec: ['easy', 'recovery'],
-  quality: ['rhythm', 'buildup', 'steady', 'tempo'],
+  quality: ['rhythm', 'buildup', 'steady', 'tempo', 'trial'],
 };
 function matchesFilter(type) {
   if (statsFilter === 'all') return true;
@@ -345,6 +346,31 @@ function renderGuide() {
   strat.appendChild(sWrap);
   strat.appendChild(h('div', 'muted-line', `목표는 6'55"/km, 한계는 7'07"/km 기준. 한계열보다 뒤면 걷기 구간을 줄여야 한다.`));
   root.appendChild(strat);
+
+  // 목표 판정 — 9/18 5km 측정 기록으로 대회 목표 트랙 결정
+  const trialCard = h('section', 'card');
+  trialCard.appendChild(h('div', 'card-title', '🎯 목표 판정 (5km 측정)'));
+  const lt = latestTrial(Store.all());
+  const tier = lt ? trialTier(lt.trialSec) : null;
+  trialCard.appendChild(lt
+    ? h('div', 'trial-result', `${fmtDate(lt.date)} 5km ${fmtDur(lt.trialSec)} → ${tier.goal} 트랙`)
+    : h('div', 'muted-line', '9/18(금) 측정 후 "5km 기록"을 입력하면 해당 트랙이 표시됩니다.'));
+  const tWrap = h('div', 'table-wrap');
+  const tTable = h('table', 'run-table pace-table');
+  const tTrh = h('tr');
+  ['5km 기록', '목표', '평균', '런 구간'].forEach(c => tTrh.appendChild(h('th', null, c)));
+  const tThead = h('thead'); tThead.appendChild(tTrh); tTable.appendChild(tThead);
+  const tTbody = h('tbody');
+  TRIAL.tiers.forEach((t, i) => {
+    const prev = TRIAL.tiers[i - 1];
+    const cond = !prev ? fmtDur(t.maxSec) + ' 이내' : t.maxSec === Infinity ? fmtDur(prev.maxSec) + ' 초과' : fmtDur(prev.maxSec) + '~' + fmtDur(t.maxSec);
+    const tr = h('tr', t === tier ? 'on' : null);
+    [[cond], [t.goal], [paceSpan(t.pace), 'num'], [runSegSpan(t.pace), 'num']].forEach(([text, cls]) => tr.appendChild(h('td', cls, text)));
+    tTbody.appendChild(tr);
+  });
+  tTable.appendChild(tTbody); tWrap.appendChild(tTable); trialCard.appendChild(tWrap);
+  trialCard.appendChild(h('div', 'muted-line', TRIAL.note));
+  root.appendChild(trialCard);
 
   const paceCard = h('section', 'card');
   paceCard.appendChild(h('div', 'card-title', '⏱ 페이스 가이드 (/km)'));
@@ -510,6 +536,7 @@ function openRecord({ planId, runId }) {
     $('#f-hr').value = r.avgHr ?? ''; $('#f-maxhr').value = r.maxHr ?? '';
     $('#f-cad').value = r.cadence ?? '';
     $('#f-runwalk').value = r.runWalk ?? '';
+    if (r.trialSec) { $('#f-tm').value = Math.floor(r.trialSec / 60); $('#f-ts').value = r.trialSec % 60; }
     $('#f-pain').value = r.shinPain ?? 0; $('#pain-out').textContent = r.shinPain ?? 0;
     fillShoeOptions(r.shoes); $('#f-notes').value = r.notes ?? '';
     $('#f-delete').hidden = false;
@@ -524,6 +551,7 @@ function openRecord({ planId, runId }) {
     if (plan && TYPES[plan.type].runWalk) $('#f-runwalk').value = RUN_WALK_LABEL;
     fillShoeOptions(lastShoe());
   }
+  syncTrialField();
   updatePacePreview();
   dlg.showModal();
 }
@@ -534,9 +562,13 @@ function updatePacePreview() {
   $('#pace-preview').textContent = dist > 0 && sec > 0 ? '평균 페이스 ' + fmtPace(sec / dist) + '/km' : '';
 }
 
+/* 5km 기록 칸은 기록 측정 타입에서만 */
+function syncTrialField() { $('#f-trial-wrap').hidden = $('#f-type').value !== 'trial'; }
+
 function setupDialog() {
   const dlg = $('#record-dialog');
   ['#f-dist', '#f-dh', '#f-dm', '#f-ds'].forEach(s => $(s).addEventListener('input', updatePacePreview));
+  $('#f-type').addEventListener('change', syncTrialField);
   $('#f-pain').addEventListener('input', () => $('#pain-out').textContent = $('#f-pain').value);
   $('#f-shoes-sel').addEventListener('change', () => {
     const isNew = $('#f-shoes-sel').value === '__new__';
@@ -561,6 +593,7 @@ function setupDialog() {
     if (!(dist > 0)) { toast('거리를 입력하세요'); return; }
     const isNew = !$('#f-id').value;
     const sec = (parseInt($('#f-dh').value) || 0) * 3600 + (parseInt($('#f-dm').value) || 0) * 60 + (parseInt($('#f-ds').value) || 0);
+    const trialSec = (parseInt($('#f-tm').value) || 0) * 60 + (parseInt($('#f-ts').value) || 0);
     const run = {
       id: $('#f-id').value || 'r' + Date.now(),
       planId: $('#f-plan').value || null,
@@ -573,6 +606,7 @@ function setupDialog() {
       maxHr: parseInt($('#f-maxhr').value) || null,
       cadence: parseInt($('#f-cad').value) || null,
       runWalk: $('#f-runwalk').value.trim() || null,
+      trialSec: $('#f-type').value === 'trial' && trialSec > 0 ? trialSec : null,
       shinPain: $('#f-pain').value === '' ? null : parseInt($('#f-pain').value),
       shoes: ($('#f-shoes-sel').value === '__new__' ? $('#f-shoes-new').value : $('#f-shoes-sel').value).trim() || null,
       notes: $('#f-notes').value.trim() || null,

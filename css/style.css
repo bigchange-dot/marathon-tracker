@@ -108,6 +108,7 @@ main { max-width: 560px; margin: 0 auto; padding: 12px 12px 24px; }
 .chip-buildup { background: color-mix(in srgb, var(--warning) 20%, transparent); }
 .chip-steady { background: color-mix(in srgb, var(--serious) 30%, transparent); }
 .chip-tempo { background: color-mix(in srgb, var(--critical) 28%, transparent); }
+.chip-trial { background: color-mix(in srgb, var(--series-1) 35%, transparent); }
 
 /* 버튼 */
 .btn {
@@ -212,6 +213,8 @@ main { max-width: 560px; margin: 0 auto; padding: 12px 12px 24px; }
 .run-table .num { font-variant-numeric: tabular-nums; }
 .pace-table tbody tr { cursor: default; }
 .pace-table td:not(:last-child) { white-space: nowrap; }
+.pace-table tr.on td { font-weight: 700; color: var(--ink); background: color-mix(in srgb, var(--series-1) 12%, transparent); }
+.trial-result { font-weight: 700; font-size: 15px; margin: 2px 0 4px; }
 
 /* 가이드 */
 .guide-line { font-size: 13.5px; color: var(--ink-2); margin-top: 6px; }
@@ -264,6 +267,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
   min-height: 38px; /* appearance:none 시 iOS에서 높이가 주저앉는 것 방지 */
 }
 #record-form input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+#record-form label[hidden] { display: none; }
 .dur-row { display: flex; gap: 6px; }
 .dur-row input { padding: 8px 4px; text-align: center; min-width: 0; }
 /* 러닝화 마일리지 */
