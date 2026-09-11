@@ -54,13 +54,13 @@ const AI = (() => {
       '- 정강이(신스프린트) 통증 이력 있음 — 통증 지수 4~5면 훈련 축소, 6+면 중단이 원칙',
       `- 목표 대회: ${RACE.name} (${RACE.date}, D-${dday}) 풀코스 첫 도전`,
       `- 목표 ${RACE.targetFinish} (런워크 포함 ${fmtPace(RACE.targetPaceSec[0])}~${fmtPace(RACE.targetPaceSec[1])}/km) · 컷오프 5:00 (한계 ${fmtPace(RACE.cutoffPaceSec)}/km)`,
-      '- 14주 플랜(8/11~11/15, 주 구분 화→월): 주 3~4회 — 수 회복 · 금 퀄리티 · 일 보조 조깅 · 월 롱런(9/7부터, 주말 롱런 불가로 이동). 피크 주간 55km, 최장 롱런 28km. 롱런은 런워크 병행.',
+      '- 14주 플랜(8/11~11/15, 주 구분 화→월): 주 3~4회 — 수 회복 · 금 퀄리티 · 일 보조 조깅 · 월 롱런(9/7부터, 주말 롱런 불가로 이동). 피크 주간 55km, 최장 롱런 28km. 롱런·대회는 9분 런 / 1분 워크.',
       '',
       '## 방금 끝난 훈련',
       '- ' + runLine(run),
     ];
 
-    if (t) lines.push(`- 이 타입(${t.label})의 목표 페이스존: ${fmtPace(t.pace[0])}~${fmtPace(t.pace[1])}/km — ${t.desc}`);
+    if (t) lines.push(`- 이 타입(${t.label})의 목표 페이스존(/km): ${paceText(run.type)} — ${t.desc}` + (t.runWalk ? ' 기록 페이스는 워크 포함 평균.' : ''));
     if (run.shoes) {
       const m = Store.shoeMileage().find(s => s.shoes === run.shoes);
       if (m) lines.push(`- 신발: ${run.shoes} — 누적 ${m.km.toFixed(1)}km · ${m.count}회 사용 (500km부터 교체 검토)`);

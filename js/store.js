@@ -100,7 +100,8 @@ function fmtDateShort(s) { const d = parseDate(s); return (d.getMonth() + 1) + '
 
 function fmtPace(sec) {
   if (sec == null || !isFinite(sec)) return '–';
-  const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+  sec = Math.round(sec); // 먼저 반올림 — 419.6초가 6'60"로 찍히는 것 방지
+  const m = Math.floor(sec / 60), s = sec % 60;
   return m + "'" + String(s).padStart(2, '0') + '"';
 }
 function fmtDur(sec) {
@@ -110,6 +111,24 @@ function fmtDur(sec) {
                : m + ':' + String(s).padStart(2, '0');
 }
 function paceRange(type) { const t = TYPES[type]; return t ? fmtPace(t.pace[0]) + '~' + fmtPace(t.pace[1]) : ''; }
+
+/* 런워크 평균 페이스(워크 포함) → 런 구간 페이스. 한 사이클 거리에서 워크 거리를 빼고 역산 */
+function runSegPace(avgSec) {
+  const { runMin, walkMin, walkPaceSec } = RUN_WALK;
+  const cycleKm = (runMin + walkMin) * 60 / avgSec;
+  return runMin * 60 / (cycleKm - walkMin * 60 / walkPaceSec);
+}
+function runSegRange(pace) { return fmtPace(runSegPace(pace[0])) + '~' + fmtPace(runSegPace(pace[1])); }
+const RUN_WALK_LABEL = `${RUN_WALK.runMin}분 / ${RUN_WALK.walkMin}분`;
+
+/* 타입별 목표 페이스 한 줄 표기 — 런워크는 런·워크 구분, 빌드업은 점증 방향 */
+function paceText(type) {
+  const t = TYPES[type];
+  if (!t) return '';
+  if (t.runWalk) return `런 ${runSegRange(t.pace)} · 워크 ${fmtPace(RUN_WALK.walkPaceSec)} (평균 ${paceRange(type)})`;
+  if (t.progressive) return fmtPace(t.pace[1]) + '→' + fmtPace(t.pace[0]);
+  return paceRange(type);
+}
 
 /* 시드된 과거 기록(hist-*)과 앱에서 직접 입력한 기록 구분 */
 function isAppRun(r) { return !r.id.startsWith('hist-'); }

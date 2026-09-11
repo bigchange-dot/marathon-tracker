@@ -76,7 +76,7 @@ function renderToday() {
     nCard.appendChild(head);
     const target = np.targetKm != null ? np.targetKm + 'km' : (np.targetMin ? np.targetMin + '분' : '');
     nCard.appendChild(h('div', 'next-target', target + (np.capMin ? ` (상한 ${Math.floor(np.capMin / 60)}:${String(np.capMin % 60).padStart(2, '0')})` : '')));
-    nCard.appendChild(h('div', 'muted-line', '목표 페이스 ' + paceRange(np.type) + '/km — ' + t.desc));
+    nCard.appendChild(h('div', 'muted-line', '목표 페이스(/km) ' + paceText(np.type) + ' — ' + t.desc));
     if (np.note) nCard.appendChild(h('div', 'note-line', '📌 ' + np.note));
     const btn = h('button', 'btn btn-primary', '이 훈련 기록하기');
     btn.addEventListener('click', () => openRecord({ planId: np.id }));
@@ -321,7 +321,7 @@ function renderGuide() {
   [
     `목표: ${RACE.targetFinish} 완주 (${fmtPace(RACE.targetPaceSec[0])}~${fmtPace(RACE.targetPaceSec[1])}/km)`,
     RACE.cutoffNote,
-    `초반 10km는 6'55" 고정 — 6'45"보다 빠르면 오버페이스.`,
+    `초반 10km는 평균 6'55" 고정(런 구간 ${fmtPace(runSegPace(415))}) — 평균 6'45"보다 빠르면 오버페이스.`,
     `30km를 3:28 이내에 통과하면 이후 7'30"대로 느려져도 완주 가능. 이 시계가 레이스의 전부.`,
     '컷오프가 건타임(출발 총성) 기준일 수 있음 — 출발 그룹 앞쪽에 서고, 구간 관문(중간 컷오프)은 대회 요강 확인.',
     '런워크는 초반 1km부터 시작. 지쳐서 시작하는 걷기는 회복이 아니라 후퇴.',
@@ -347,21 +347,35 @@ function renderGuide() {
   root.appendChild(strat);
 
   const paceCard = h('section', 'card');
-  paceCard.appendChild(h('div', 'card-title', '⏱ 타입별 페이스 가이드'));
-  const wrap = h('div', 'table-wrap');
-  const table = h('table', 'run-table');
-  const trh = h('tr');
-  ['타입', '페이스', '설명'].forEach(c => trh.appendChild(h('th', null, c)));
-  const thead = h('thead'); thead.appendChild(trh); table.appendChild(thead);
-  const tbody = h('tbody');
-  Object.entries(TYPES).forEach(([, t]) => {
-    const tr = h('tr');
-    tr.appendChild(h('td', null, t.label));
-    tr.appendChild(h('td', 'num', fmtPace(t.pace[0]) + '~' + fmtPace(t.pace[1])));
-    tr.appendChild(h('td', null, t.desc));
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody); wrap.appendChild(table); paceCard.appendChild(wrap);
+  paceCard.appendChild(h('div', 'card-title', '⏱ 페이스 가이드 (/km)'));
+  const paceTable = (cols, rows) => {
+    const wrap = h('div', 'table-wrap');
+    const table = h('table', 'run-table pace-table');
+    const trh = h('tr');
+    cols.forEach(c => trh.appendChild(h('th', null, c)));
+    const thead = h('thead'); thead.appendChild(trh); table.appendChild(thead);
+    const tbody = h('tbody');
+    rows.forEach(cells => {
+      const tr = h('tr');
+      cells.forEach(([text, cls]) => tr.appendChild(h('td', cls, text)));
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); wrap.appendChild(table);
+    return wrap;
+  };
+  // 런워크 — 런 구간과 워크 구간을 따로. 평균은 워크 포함(기록 페이스와 같은 기준)
+  paceCard.appendChild(h('div', 'guide-sub', `런워크 · ${RUN_WALK.runMin}분 런 / ${RUN_WALK.walkMin}분 워크`));
+  const walk = fmtPace(RUN_WALK.walkPaceSec);
+  paceCard.appendChild(paceTable(['구간', '런', '워크', '평균'], [
+    [['롱런'], [runSegRange(TYPES.long.pace), 'num'], [walk, 'num'], [paceRange('long'), 'num']],
+    [['대회 · 롱런 후반'], [runSegRange(TYPES.race.pace), 'num'], [walk, 'num'], [paceRange('race'), 'num']],
+  ]));
+  paceCard.appendChild(h('div', 'muted-line', '평균은 워크 포함 — 기록 페이스도 이 기준. 워크는 멈추지 말고 빠르게 걷는다.'));
+  // 연속주
+  paceCard.appendChild(h('div', 'guide-sub', '연속주'));
+  paceCard.appendChild(paceTable(['타입', '페이스', '포인트'],
+    Object.entries(TYPES).filter(([, t]) => !t.runWalk)
+      .map(([key, t]) => [[t.label], [paceText(key), 'num'], [t.desc]])));
   root.appendChild(paceCard);
 
   const painCard = h('section', 'card');
@@ -507,6 +521,7 @@ function openRecord({ planId, runId }) {
     $('#f-date').value = plan && plan.date >= todayStr() ? plan.date : todayStr();
     $('#f-type').value = plan ? plan.type : 'recovery';
     if (plan) { $('#f-plan').value = plan.id; if (plan.targetKm) $('#f-dist').value = plan.targetKm; }
+    if (plan && TYPES[plan.type].runWalk) $('#f-runwalk').value = RUN_WALK_LABEL;
     fillShoeOptions(lastShoe());
   }
   updatePacePreview();

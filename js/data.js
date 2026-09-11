@@ -47,16 +47,21 @@ const RACE = {
   ],
 };
 
+// 런워크 — 9분 런 / 1분 워크. 런워크 타입의 pace는 워크 포함 평균(기록 페이스와 같은 기준)이고,
+// 런 구간 페이스는 워크를 walkPaceSec(빠르게 걷기)로 가정해 역산한다 (runSegPace)
+const RUN_WALK = { runMin: 9, walkMin: 1, walkPaceSec: 600 };
+
 // 훈련 타입별 목표 페이스 (초/km) — 느린 순
+// runWalk: 런워크로 뛰는 타입 / progressive: 느린 쪽에서 빠른 쪽으로 점증
 const TYPES = {
-  easy:     { label: '보조 조깅',    short: '보조', pace: [465, 495], desc: '25~35분. "이거 너무 쉬운데" 소리가 나와야 정상. 금요일 통증 3 이상이면 이 세션부터 버린다.' },
-  recovery: { label: '회복 조깅',    short: '회복', pace: [450, 480], desc: '대화가 가능한 편안한 속도. 심박 존2.' },
-  long:     { label: '장거리 (LSD)', short: '롱런', pace: [435, 465], desc: '런워크 병행(예: 4분 달리기/1분 걷기). 거리보다 시간 상한 우선. 6주차부터 마지막 20~25%는 대회 페이스.' },
-  buildup:  { label: '빌드업',       short: '빌드', pace: [390, 450], desc: '7\'30"에서 시작해 6\'30"까지 점증. 힘든 구간이 뒤에 오므로 부상 위험이 가장 낮다. 케이던스 175spm 연습 자리.' },
-  rhythm:   { label: '리듬 유지주',  short: '리듬', pace: [400, 420], desc: '대회 페이스 감각 유지. 테이퍼 구간의 기본 세션.' },
-  steady:   { label: '지속주',       short: '지속', pace: [390, 405], desc: '웜업 후 6\'30"~6\'45"로 끊김 없이. 목적은 대회 페이스를 "쉽게" 만드는 것.' },
-  tempo:    { label: '크루즈 인터벌', short: '템포', pace: [370, 385], desc: '역치 훈련. 반드시 끊어서 — 4×6분(90초 조깅 회복). 연속 템포는 정강이 부하가 커서 금지.' },
-  race:     { label: '대회',         short: '대회', pace: [410, 420], desc: '1km부터 런워크 시작. 후반에 시작하면 늦다.' },
+  easy:     { label: '보조 조깅',    short: '보조', pace: [465, 495], desc: '25~35분, 너무 쉽다 싶게.' },
+  recovery: { label: '회복 조깅',    short: '회복', pace: [450, 480], desc: '대화 가능한 속도 · 심박 존2.' },
+  long:     { label: '장거리 (LSD)', short: '롱런', pace: [435, 465], runWalk: true, desc: '거리보다 시간 상한 우선. 6주차부터 마지막 20~25%는 대회 페이스.' },
+  buildup:  { label: '빌드업',       short: '빌드', pace: [390, 450], progressive: true, desc: '점증 · 케이던스 175spm.' },
+  rhythm:   { label: '리듬 유지주',  short: '리듬', pace: [400, 420], desc: '대회 페이스 감각 유지.' },
+  steady:   { label: '지속주',       short: '지속', pace: [390, 405], desc: '웜업 후 끊김 없이.' },
+  tempo:    { label: '크루즈 인터벌', short: '템포', pace: [370, 385], desc: '4×6분 · 90초 조깅 회복. 연속 템포 금지.' },
+  race:     { label: '대회',         short: '대회', pace: [410, 420], runWalk: true, desc: '1km부터 런워크 시작.' },
 };
 
 /* 14주 스케줄
