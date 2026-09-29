@@ -518,6 +518,7 @@ function openRecord({ planId, runId }) {
   $('#f-delete').hidden = true;
   $('#f-ai').hidden = true;
   $('#pain-out').textContent = '0';
+  $('#fit-info').replaceChildren();
 
   if (runId) {
     const r = Store.byId(runId);
@@ -562,6 +563,41 @@ function updatePacePreview() {
   $('#pace-preview').textContent = dist > 0 && sec > 0 ? '평균 페이스 ' + fmtPace(sec / dist) + '/km' : '';
 }
 
+/* 가민 FIT → 폼 채우기. 런워크면 케이던스는 달리기 구간만 넣고, 걷기 포함 값은 메모에 남긴다 */
+async function importFit(file) {
+  const info = $('#fit-info');
+  info.textContent = '읽는 중…';
+  let r;
+  try { r = await FIT.readFile(file); }
+  catch (err) { info.replaceChildren(h('span', 'warn', '불러오기 실패 — ' + err.message)); return; }
+
+  $('#f-date').value = r.date;
+  $('#f-dist').value = r.distanceKm.toFixed(2);
+  $('#f-dh').value = Math.floor(r.durationSec / 3600) || '';
+  $('#f-dm').value = Math.floor((r.durationSec % 3600) / 60);
+  $('#f-ds').value = r.durationSec % 60;
+  $('#f-hr').value = r.avgHr ?? ''; $('#f-maxhr').value = r.maxHr ?? '';
+  $('#f-cad').value = (r.runOnly ? r.runOnly.cadence : r.cadence) ?? '';
+  if (r.hasCadence) $('#f-runwalk').value = r.runWalk || '';
+  if ($('#f-type').value === 'trial') {
+    const lap5 = r.laps.find(l => l.distanceKm >= 4.9 && l.distanceKm <= 5.1);
+    if (lap5) { $('#f-tm').value = Math.floor(lap5.sec / 60); $('#f-ts').value = lap5.sec % 60; }
+  }
+  if (r.runOnly) {
+    const line = `[FIT] 달리기 구간 ${r.runOnly.paceSec ? fmtPace(r.runOnly.paceSec) + '/km · ' : ''}케이던스 ${r.runOnly.cadence}spm (걷기 포함 ${r.cadence}) · 걷기 ${r.walkCount}회`;
+    const notes = $('#f-notes').value.replace(/^\[FIT\].*$\n?/m, '').trim();
+    $('#f-notes').value = notes ? line + '\n' + notes : line;
+  }
+  updatePacePreview();
+
+  const t = r.start;
+  const parts = [`⌚ ${t.getMonth() + 1}/${t.getDate()} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')} 시작`,
+    `${r.distanceKm.toFixed(2)}km`, fmtDur(r.durationSec)];
+  if (r.runOnly) parts.push(`런워크 감지(걷기 ${r.walkCount}회) — 케이던스는 달리기 구간만`);
+  info.replaceChildren(h('span', null, parts.join(' · ')));
+  if (!r.isRunning) info.appendChild(h('div', 'warn', '러닝 활동이 아닙니다 — 파일을 확인하세요'));
+}
+
 /* 5km 기록 칸은 기록 측정 타입에서만 */
 function syncTrialField() { $('#f-trial-wrap').hidden = $('#f-type').value !== 'trial'; }
 
@@ -569,6 +605,12 @@ function setupDialog() {
   const dlg = $('#record-dialog');
   ['#f-dist', '#f-dh', '#f-dm', '#f-ds'].forEach(s => $(s).addEventListener('input', updatePacePreview));
   $('#f-type').addEventListener('change', syncTrialField);
+  $('#f-fit-btn').addEventListener('click', () => $('#f-fit').click());
+  $('#f-fit').addEventListener('change', e => {
+    const file = e.target.files[0];
+    e.target.value = ''; // 같은 파일을 다시 골라도 change가 뜨도록
+    if (file) importFit(file);
+  });
   $('#f-pain').addEventListener('input', () => $('#pain-out').textContent = $('#f-pain').value);
   $('#f-shoes-sel').addEventListener('change', () => {
     const isNew = $('#f-shoes-sel').value === '__new__';

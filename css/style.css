@@ -285,6 +285,11 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 
 /* line-height를 min-height와 일치시켜 텍스트가 나타나도 높이가 안 변하게 (다이얼로그 재중앙정렬 방지) */
 .pace-preview { color: var(--series-1); font-weight: 700; font-size: 13.5px; margin-top: 8px; line-height: 1.2; min-height: 1.2em; }
+/* 가민 FIT 불러오기 */
+.fit-row { margin: 4px 0 10px; }
+.fit-info { color: var(--ink-2); font-size: 12.5px; margin-top: 6px; line-height: 1.45; }
+.fit-info:empty { display: none; }
+.fit-info .warn { color: var(--critical); font-weight: 600; }
 .pain-label output { font-weight: 800; color: var(--ink); }
 input[type="range"] { accent-color: var(--series-1); padding: 0; }
 
