@@ -322,11 +322,11 @@ function renderGuide() {
   [
     `목표: ${RACE.targetFinish} 완주 (${fmtPace(RACE.targetPaceSec[0])}~${fmtPace(RACE.targetPaceSec[1])}/km)`,
     RACE.cutoffNote,
-    `초반 10km는 평균 6'55" 고정(런 구간 ${fmtPace(runSegPace(415))}) — 평균 6'45"보다 빠르면 오버페이스.`,
+    `초반 10km는 6'55"~7'00" 고정 — 6'45"보다 빠르면 오버페이스. 심박 155 이하.`,
     `30km를 3:28 이내에 통과하면 이후 7'30"대로 느려져도 완주 가능. 이 시계가 레이스의 전부.`,
     '컷오프가 건타임(출발 총성) 기준일 수 있음 — 출발 그룹 앞쪽에 서고, 구간 관문(중간 컷오프)은 대회 요강 확인.',
-    '런워크는 초반 1km부터 시작. 지쳐서 시작하는 걷기는 회복이 아니라 후퇴.',
-    '보급: 젤 40~45분 간격(레이스 중 4~5개), 급수는 매 급수대에서 소량.',
+    '계속 달리기 기본(11차 검토) — 급수대·젤 때만 걷는다. 걸은 뒤 30초는 천천히, 곧바로 치고 나가지 않는다. 최종 방식은 11/4 롱런에서 확정.',
+    '보급: 젤 40분 간격(레이스 중 6~7개) — 걸으면서 먹는다. 급수는 매 급수대에서 소량.',
   ].forEach(s => strat.appendChild(h('div', 'guide-line', '· ' + s)));
   // 구간별 통과 목표 — 대회 중 시계 체크용
   const sWrap = h('div', 'table-wrap');
@@ -389,16 +389,8 @@ function renderGuide() {
     table.appendChild(tbody); wrap.appendChild(table);
     return wrap;
   };
-  // 런워크 — 런 구간과 워크 구간을 따로. 평균은 워크 포함(기록 페이스와 같은 기준)
-  paceCard.appendChild(h('div', 'guide-sub', `런워크 · ${RUN_WALK.runMin}분 런 / ${RUN_WALK.walkMin}분 워크`));
-  const walk = fmtPace(RUN_WALK.walkPaceSec);
-  paceCard.appendChild(paceTable(['구간', '런', '워크', '평균'], [
-    [['롱런'], [runSegRange(TYPES.long.pace), 'num'], [walk, 'num'], [paceRange('long'), 'num']],
-    [['대회 · 롱런 후반'], [runSegRange(TYPES.race.pace), 'num'], [walk, 'num'], [paceRange('race'), 'num']],
-  ]));
-  paceCard.appendChild(h('div', 'muted-line', '평균은 워크 포함 — 기록 페이스도 이 기준. 워크는 멈추지 말고 빠르게 걷는다.'));
   // 연속주
-  paceCard.appendChild(h('div', 'guide-sub', '연속주'));
+  paceCard.appendChild(h('div', 'guide-sub', '타입별 페이스 — 11차 검토부터 롱런·대회도 계속 달리기'));
   paceCard.appendChild(paceTable(['타입', '페이스', '포인트'],
     Object.entries(TYPES).filter(([, t]) => !t.runWalk)
       .map(([key, t]) => [[t.label], [paceText(key), 'num'], [t.desc]])));
