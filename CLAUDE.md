@@ -18,16 +18,20 @@
 js/data.js    플랜(PLANS)·타입별 페이스(TYPES)·대회 정보(RACE)·주차 메모(WEEK_NOTES) + 상단 검토 이력 주석
 js/store.js   localStorage 저장소·파생 통계
 js/app.js     화면 렌더링 (오늘 / 캘린더 / 통계 / 가이드)
-js/ai.js      훈련 분석용 AI 프롬프트 생성 (러너 배경 요약 포함)
+js/log.js     세션 기록(LOG) — 세션에서 입력한 훈련 수치. 배포되면 폰 앱에 자동으로 합쳐짐
 js/fit.js     가민 FIT(.fit / 가민 커넥트 원본 내보내기 .zip) 해석 → 기록 폼 자동 채움. 브라우저 안에서만 처리
 js/charts.js  SVG 차트
 sw.js         오프라인 캐시
-tools/        보조 스크립트 (hr_from_export.py: 애플 건강 export.zip에서 심박 추출)
+tools/        보조 스크립트 (fit_summary.js: 가민 FIT → LOG 한 줄 · hr_from_export.py: 애플 건강 심박 추출)
 docs/         훈련 기록 JSON 백업 — gitignore됨
 ```
 
 ## 데이터 규칙
-- 기록은 **브라우저 localStorage에만** 있다. 앱 가이드 탭의 JSON 내보내기가 유일한 백업이다.
+- **기록은 세션에서 입력한다 (2026-10-18~).** 사용자가 가민 원본 내보내기를 `~/Downloads`에 받아두면
+  `node tools/fit_summary.js <zip> <planId> <type>` → 결과 한 줄을 `js/log.js`의 LOG에 추가 → sw VERSION 올리고 커밋·푸시하면 폰에 보인다.
+  LOG에는 **수치만** (통증 지수·메모·증상은 넣지 않고 메모리에만). 런워크 오탐(신호 대기)은 확인해서 정정.
+  폰에 같은 planId 기록이 있으면 폰 기록이 우선 표시된다. 앱의 AI 분석 기능은 제거됨 — 분석은 세션에서.
+- 10/17 이전 기록과 폰에서 직접 입력한 기록은 **브라우저 localStorage에만** 있다. 앱 가이드 탭의 JSON 내보내기가 백업이다.
   사이트 데이터 삭제로 캐시 문제를 풀지 말 것 (기록이 사라진다).
 - `docs/`는 gitignore라 **다른 PC에는 JSON 기록이 따라오지 않는다.** 분석하려면 최신 `running-log-YYYY-MM-DD.json`을
   직접 `docs/`로 복사한다 (윈도우 PC는 `다운로드` 폴더, 맥은 `~/Downloads`에 내보내진다).
@@ -39,7 +43,7 @@ docs/         훈련 기록 JSON 백업 — gitignore됨
 플랜 변경은 "N차 검토"로 묶어서 아래를 **함께** 갱신한다.
 1. `js/data.js` — PLANS / WEEK_NOTES / 필요 시 TRIAL·RACE, 그리고 파일 상단 주석에 검토 이력 추가
 2. `README.md` — "N차 검토" 표(항목 / 이전 / 수정 / 이유)
-3. `js/ai.js` — 러너 배경 요약이 현재 상황과 맞는지
+3. `CLAUDE.md` — 현재 상태·미결 사항
 4. `sw.js` — VERSION 올리기
 
 ## 기록 분석 시 주의

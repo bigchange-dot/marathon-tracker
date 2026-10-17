@@ -1,17 +1,34 @@
-/* 저장소 + 파생 데이터 계산. 데이터는 localStorage에만 존재한다 —
- * 백업은 가이드 탭의 JSON 내보내기가 유일한 안전망. */
+/* 저장소 + 파생 데이터 계산. 폰에서 입력한 기록은 localStorage에만 존재한다 —
+ * 백업은 가이드 탭의 JSON 내보내기가 유일한 안전망.
+ * 세션 기록(js/log.js의 LOG)은 읽을 때 합친다: 같은 id·같은 planId의 로컬 기록이 있으면 로컬이 우선.
+ * LOG 기록을 폰에서 수정하면 같은 id로 로컬에 복사되고, 삭제하면 숨김 목록에 남는다. */
 
 const Store = (() => {
   const KEY = 'mst.runs.v1';
   const SEED_KEY = 'mst.seeded.v1';
   const BACKUP_KEY = 'mst.lastBackup.v1';
   const SHOES_KEY = 'mst.shoes.v1'; // 등록된 러닝화 이름 목록
+  const HIDDEN_KEY = 'mst.hiddenLog.v1'; // 폰에서 삭제한 세션 기록(LOG) id
 
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || []; }
     catch { return []; }
   }
   function save(runs) { localStorage.setItem(KEY, JSON.stringify(runs)); }
+  function hidden() {
+    try { return JSON.parse(localStorage.getItem(HIDDEN_KEY)) || []; }
+    catch { return []; }
+  }
+  /* 로컬 기록 + 세션 기록(LOG). 로컬에 같은 id나 같은 planId가 있으면 LOG 쪽은 뺀다 */
+  function merged() {
+    const local = load();
+    const ids = new Set(local.map(r => r.id).concat(hidden()));
+    const plans = new Set(local.map(r => r.planId).filter(Boolean));
+    const log = (typeof LOG === 'undefined' ? [] : LOG)
+      .filter(l => !ids.has(l.id) && !(l.planId && plans.has(l.planId)))
+      .map(l => ({ trialSec: null, shinPain: null, notes: null, ...l }));
+    return local.concat(log);
+  }
 
   function seedIfNeeded() {
     if (localStorage.getItem(SEED_KEY)) return;
@@ -23,7 +40,7 @@ const Store = (() => {
     localStorage.setItem(SEED_KEY, '1');
   }
 
-  function all() { return load().slice().sort((a, b) => a.date.localeCompare(b.date)); }
+  function all() { return merged().sort((a, b) => a.date.localeCompare(b.date)); }
 
   function upsert(run) {
     const runs = load();
@@ -31,12 +48,15 @@ const Store = (() => {
     if (i >= 0) runs[i] = run; else runs.push(run);
     save(runs);
   }
-  function remove(id) { save(load().filter(r => r.id !== id)); }
-  function byId(id) { return load().find(r => r.id === id) || null; }
+  function remove(id) {
+    save(load().filter(r => r.id !== id));
+    if (typeof LOG !== 'undefined' && LOG.some(l => l.id === id)) localStorage.setItem(HIDDEN_KEY, JSON.stringify([...new Set(hidden().concat(id))]));
+  }
+  function byId(id) { return merged().find(r => r.id === id) || null; }
 
   function exportJson() {
     localStorage.setItem(BACKUP_KEY, todayStr());
-    return JSON.stringify({ app: 'marathon-survival-tracker', version: 1, exportedAt: new Date().toISOString(), runs: load() }, null, 2);
+    return JSON.stringify({ app: 'marathon-survival-tracker', version: 1, exportedAt: new Date().toISOString(), runs: merged() }, null, 2);
   }
   function importJson(text) {
     const data = JSON.parse(text);
@@ -63,13 +83,13 @@ const Store = (() => {
   /* 드롭다운 후보 = 등록 목록 ∪ 기록에 등장한 신발 (편집 시 목록에 없는 이름도 보이게) */
   function knownShoes() {
     const set = new Set(shoeList());
-    load().forEach(r => { if (r.shoes) set.add(r.shoes); });
+    merged().forEach(r => { if (r.shoes) set.add(r.shoes); });
     return [...set].sort((a, b) => a.localeCompare(b, 'ko'));
   }
   /* 신발별 누적 마일리지 — 타입 필터와 무관하게 전체 기록 기준 */
   function shoeMileage() {
     const m = new Map();
-    load().forEach(r => {
+    merged().forEach(r => {
       if (!r.shoes) return;
       const s = m.get(r.shoes) || { shoes: r.shoes, km: 0, count: 0, last: null };
       s.km += r.distanceKm || 0; s.count++;
