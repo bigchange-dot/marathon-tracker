@@ -407,12 +407,15 @@ function renderGuide() {
   root.appendChild(painCard);
 
   const str = h('section', 'card');
-  str.appendChild(h('div', 'card-title', '💪 근력 · 스트라이드 (13차 검토)'));
+  str.appendChild(h('div', 'card-title', '💪 근력 · 스트라이드 · 템포'));
   str.appendChild(h('div', 'guide-sub', '근력 10~15분 — 스트라이드 하는 조깅 날, 뛰고 나서. 휴식일은 쉰다'));
   ['옆으로 누워 다리 들기 양쪽 15회 × 2 — 골반이 앞으로 넘어가지 않게', '계단에서 한 발로 내려가기 양쪽 10회 × 2 — 3초에 걸쳐, 무릎이 안쪽으로 무너지지 않게', '한 발 브릿지 양쪽 10회 × 2', '한 발 까치발 들기 양쪽 15회 × 2 — 내려갈 때 천천히', '첫날은 1세트. 무릎 바깥쪽이 아픈 동작은 빼고 기록에 남긴다']
     .forEach(s => str.appendChild(h('div', 'guide-line', '· ' + s)));
   str.appendChild(h('div', 'guide-sub', '스트라이드 — 조깅 끝나고 평지에서'));
   ['20초 동안 점점 빨라져 전력의 80~90% → 부드럽게 감속, 60초 걸어서 회복', '보폭을 늘리지 말고 발을 빨리', '시작 전에 랩 버튼 — 조깅 기록과 나뉜다', '무릎 바깥쪽 신호가 오면 남은 횟수는 하지 않는다']
+    .forEach(s => str.appendChild(h('div', 'guide-line', '· ' + s)));
+  str.appendChild(h('div', 'guide-sub', '빠른 구간(템포) — 14차 검토'));
+  ['템포 6\'05"~6\'15" · 6\'00"보다 빠르면 안 된다 (하프 기준 역치 6\'07" — 더 빠르면 10km 시합 강도)', '첫 회 10/27은 6\'10"~6\'15" → 다음 날 무릎 0 + 3km 끝 심박 172 이하면 6\'05"~6\'10"', '속도는 케이던스 182~186으로 — 보폭으로 내지 않는다', '다리가 생생한 평일 세션 중간에만. 롱런 후반·마지막 가속은 금지', '다음 날 아침 계단 반응이 있으면 다음 빠른 구간은 뺀다']
     .forEach(s => str.appendChild(h('div', 'guide-line', '· ' + s)));
   root.appendChild(str);
 
