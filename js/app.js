@@ -410,7 +410,7 @@ function renderGuide() {
 
   const str = h('section', 'card');
   str.appendChild(h('div', 'card-title', '💪 근력 · 스트라이드 · 템포'));
-  str.appendChild(h('div', 'guide-sub', '근력 10~15분 — 조깅 날 뛰고 나서(15차 검토: 11/6 · 11/10 가볍게). 휴식일은 쉰다'));
+  str.appendChild(h('div', 'guide-sub', '근력 10~15분 — 조깅 날 뛰고 나서(15차 검토: 11/5 · 11/10 가볍게). 휴식일은 쉰다'));
   ['옆으로 누워 다리 들기 양쪽 15회 × 2 — 골반이 앞으로 넘어가지 않게', '계단에서 한 발로 내려가기 양쪽 10회 × 2 — 3초에 걸쳐, 무릎이 안쪽으로 무너지지 않게', '한 발 브릿지 양쪽 10회 × 2', '한 발 까치발 들기 양쪽 15회 × 2 — 내려갈 때 천천히', '첫날은 1세트. 무릎 바깥쪽이 아픈 동작은 빼고 기록에 남긴다']
     .forEach(s => str.appendChild(h('div', 'guide-line', '· ' + s)));
   str.appendChild(h('div', 'guide-sub', '스트라이드 — 15차 검토로 대회까지 쉼'));
