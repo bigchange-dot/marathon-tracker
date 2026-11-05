@@ -13,4 +13,6 @@ const LOG = [
   {"id":"log-2026-10-19-w10-sun","planId":"w10-sun","date":"2026-10-19","type":"steady","distanceKm":7.03,"durationSec":2746,"paceSec":391,"avgHr":156,"maxHr":170,"cadence":170,"runWalk":null,"shoes":null},
   {"id":"log-2026-10-21-w10-mon","planId":"w10-mon","date":"2026-10-21","type":"long","distanceKm":10.21,"durationSec":4199,"paceSec":411,"avgHr":153,"maxHr":164,"cadence":174,"runWalk":null,"shoes":null},
   {"id":"log-2026-10-23-w11-fri","planId":"w11-fri","date":"2026-10-23","type":"easy","distanceKm":8.02,"durationSec":3146,"paceSec":392,"avgHr":154,"maxHr":168,"cadence":178,"runWalk":null,"shoes":"슈퍼블라스트3"},
+  {"id":"log-2026-10-25-w11-sun","planId":"w11-sun","date":"2026-10-25","type":"long","distanceKm":11.33,"durationSec":4515,"paceSec":398,"avgHr":157,"maxHr":167,"cadence":176,"runWalk":null,"shoes":null},
+  {"id":"log-2026-11-04-w13-wed","planId":"w13-wed","date":"2026-11-04","type":"easy","distanceKm":4.04,"durationSec":1753,"paceSec":434,"avgHr":147,"maxHr":158,"cadence":166,"runWalk":null,"shoes":null},
 ];
