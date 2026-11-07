@@ -15,4 +15,5 @@ const LOG = [
   {"id":"log-2026-10-23-w11-fri","planId":"w11-fri","date":"2026-10-23","type":"easy","distanceKm":8.02,"durationSec":3146,"paceSec":392,"avgHr":154,"maxHr":168,"cadence":178,"runWalk":null,"shoes":"슈퍼블라스트3"},
   {"id":"log-2026-10-25-w11-sun","planId":"w11-sun","date":"2026-10-25","type":"long","distanceKm":11.33,"durationSec":4515,"paceSec":398,"avgHr":157,"maxHr":167,"cadence":176,"runWalk":null,"shoes":null},
   {"id":"log-2026-11-04-w13-wed","planId":"w13-wed","date":"2026-11-04","type":"easy","distanceKm":4.04,"durationSec":1753,"paceSec":434,"avgHr":147,"maxHr":158,"cadence":166,"runWalk":null,"shoes":null},
+  {"id":"log-2026-11-06-w13-fri","planId":"w13-fri","date":"2026-11-06","type":"easy","distanceKm":3.26,"durationSec":1353,"paceSec":416,"avgHr":155,"maxHr":166,"cadence":172,"runWalk":null,"shoes":null},
 ];
