@@ -23,7 +23,7 @@ js/fit.js     가민 FIT(.fit / 가민 커넥트 원본 내보내기 .zip) 해�
 js/charts.js  SVG 차트
 sw.js         오프라인 캐시
 tools/        보조 스크립트 (fit_summary.js: 가민 FIT → LOG 한 줄 · hr_from_export.py: 애플 건강 심박 추출)
-docs/         gitignore됨 — 훈련 기록 JSON 백업 · claude-memory/(Codex용 메모리 사본) · fit-analysis/ · course-2026/(코스 지형 분석)
+docs/         gitignore됨 — 훈련 기록 JSON 백업 · garmin/(가민 원본 zip) · claude-memory/(Codex용 메모리 사본) · fit-analysis/ · course-2026/(코스 지형 분석)
 ```
 - Codex로도 작업한다 (2026-10-24~). 지침은 `AGENTS.md`(로컬, 커밋 안 함), 메모리는 `docs/claude-memory/`에 쓴다.
   세션을 시작하면 `~/.claude/projects/-Users-chae-projects-marathon-tracker/memory/`와 비교해 새 내용을 합치고 양쪽을 맞춘다.
@@ -31,6 +31,7 @@ docs/         gitignore됨 — 훈련 기록 JSON 백업 · claude-memory/(Codex
 ## 데이터 규칙
 - **기록은 세션에서 입력한다 (2026-10-18~).** 사용자가 가민 원본 내보내기를 `~/Downloads`에 받아두면
   `node tools/fit_summary.js <zip> <planId> <type>` → 결과 한 줄을 `js/log.js`의 LOG에 추가 → sw VERSION 올리고 커밋·푸시하면 폰에 보인다.
+  분석이 끝난 원본 zip은 `docs/garmin/YYYY-MM-DD_<활동ID>.zip`으로 옮기고 다운로드 폴더에서 지운다 (2026-11-07 사용자 지시, gitignore됨).
   LOG에는 **수치만** (통증 지수·메모·증상은 넣지 않고 메모리에만). 런워크 오탐(신호 대기)은 확인해서 정정.
   폰에 같은 planId 기록이 있으면 폰 기록이 우선 표시된다. 앱의 AI 분석 기능은 제거됨 — 분석은 세션에서.
 - 10/17 이전 기록과 폰에서 직접 입력한 기록은 **브라우저 localStorage에만** 있다. 앱 가이드 탭의 JSON 내보내기가 백업이다.
