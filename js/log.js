@@ -17,4 +17,6 @@ const LOG = [
   {"id":"log-2026-11-04-w13-wed","planId":"w13-wed","date":"2026-11-04","type":"easy","distanceKm":4.04,"durationSec":1753,"paceSec":434,"avgHr":147,"maxHr":158,"cadence":166,"runWalk":null,"shoes":null},
   {"id":"log-2026-11-06-w13-fri","planId":"w13-fri","date":"2026-11-06","type":"easy","distanceKm":3.26,"durationSec":1353,"paceSec":416,"avgHr":155,"maxHr":166,"cadence":172,"runWalk":null,"shoes":null},
   {"id":"log-2026-11-08-w13-sun","planId":"w13-sun","date":"2026-11-08","type":"long","distanceKm":9.41,"durationSec":3934,"paceSec":418,"avgHr":153,"maxHr":167,"cadence":168,"runWalk":null,"shoes":null},
+  // 11/10 신호 대기 2곳(1.48km·4.53km, 서 있던 시간 약 5분)이 걷기로 잡혀 런워크 오탐 → 계속 달리기로 정정. 케이던스는 달리기 구간만
+  {"id":"log-2026-11-10-w14-tue","planId":"w14-tue","date":"2026-11-10","type":"easy","distanceKm":5.99,"durationSec":2691,"paceSec":450,"avgHr":155,"maxHr":172,"cadence":174,"runWalk":null,"shoes":null},
 ];
