@@ -22,7 +22,7 @@ js/log.js     세션 기록(LOG) — 세션에서 입력한 훈련 수치. 배�
 js/fit.js     가민 FIT(.fit / 가민 커넥트 원본 내보내기 .zip) 해석 → 기록 폼 자동 채움. 브라우저 안에서만 처리
 js/charts.js  SVG 차트
 sw.js         오프라인 캐시
-tools/        보조 스크립트 (garmin_fetch.js: 가민 개인 API로 원본 zip 받기 · fit_summary.js: 가민 FIT → LOG 한 줄 · hr_from_export.py: 애플 건강 심박 추출)
+tools/        보조 스크립트 (garmin_fetch.js: 가민 개인 API로 원본 zip 받기 · garmin_sleep.js: 수면·야간 HRV 표 · garmin_api.js: 키·토큰 공통 · fit_summary.js: 가민 FIT → LOG 한 줄 · hr_from_export.py: 애플 건강 심박 추출)
 docs/         gitignore됨 — 훈련 기록 JSON 백업 · garmin/(가민 원본 zip) · claude-memory/(Codex용 메모리 사본) · fit-analysis/ · course-2026/(코스 지형 분석)
 ```
 - Codex로도 작업한다 (2026-10-24~). 지침은 `AGENTS.md`(로컬, 커밋 안 함), 메모리는 `docs/claude-memory/`에 쓴다.
@@ -32,7 +32,9 @@ docs/         gitignore됨 — 훈련 기록 JSON 백업 · garmin/(가민 원�
 - **기록은 세션에서 입력한다 (2026-10-18~).** 2026-11-13부터 **가민 개인 API로 직접 받는다** — 사용자가 다운로드할 필요 없음.
   `node tools/garmin_fetch.js` (최근 러닝 목록) · `node tools/garmin_fetch.js <YYYY-MM-DD|활동ID> <planId> <type>`
   → 원본 zip을 `docs/garmin/YYYY-MM-DD_<활동ID>.zip`에 저장하고 fit_summary.js로 LOG 한 줄 출력 → `js/log.js`의 LOG에 추가 → sw VERSION 올리고 커밋·푸시하면 폰에 보인다.
-  API로 받은 FIT은 웹 "원본 내보내기"와 바이트 단위로 같았다(11/12 활동으로 확인). 키는 `.env`의 `GARMIN_API_KEY`(gitignore, 이 PC에만 — 맥은 따로 만든다).
+  API로 받은 FIT은 웹 "원본 내보내기"와 바이트 단위로 같았다(11/12 활동으로 확인). 키는 `.env`의 `GARMIN_API_KEY`(gitignore — PC마다 따로 둔다).
+  새 PC(맥 등) 준비: `git pull` → 저장소 루트에 `.env` 만들기(`.env.example` 복사 후 키 입력, `chmod 600 .env`) → Node 18+ 확인. 그 외 설정 없음.
+  수면·야간 HRV: `node tools/garmin_sleep.js [일수 | 시작일 종료일]` — 화면 출력만. **건강 정보라 커밋·LOG 금지, 대화로만** 다룬다. 러닝 분석 때 전날 수면을 같이 본다.
   키가 만료되면(30일~1년, 가민이 1주 전 메일) 토큰 발급이 401/403으로 실패한다 → 사용자에게 가민 커넥트 웹에서 새 키를 만들어 `.env`에 넣어 달라고 한다.
   API를 못 쓰면 예전처럼 가민 원본 내보내기를 다운로드 폴더에 받아 `node tools/fit_summary.js <zip> <planId> <type>`, 분석 뒤 zip은 `docs/garmin/`으로 옮긴다.
   구간별(200m) 페이스·러닝 다이내믹스·정지 탐지는 `node docs/fit-analysis/analyze_fit.js <zip> js/fit.js` (로컬 전용, 이 맥에만 있음).
